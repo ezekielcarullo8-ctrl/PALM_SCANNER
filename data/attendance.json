@@ -1,16 +1,6 @@
 {
  "logs": [
   {
-   "id": "mwhz2qflldbt0",
-   "pid": "mwhz25z48v6k8",
-   "name": "CARULLO",
-   "ts": "2026-11-15T15:11:23.985Z",
-   "date": "2026-11-15",
-   "out": "2026-11-15T15:11:27.219Z",
-   "late": 881,
-   "early": 0
-  },
-  {
    "id": "mwhza42gopeos",
    "pid": "mwhz9zr4huvj5",
    "name": "CARU",
