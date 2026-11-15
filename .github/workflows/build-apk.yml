@@ -139,7 +139,7 @@ jobs:
             }
 
             @Override
-            protected void onDestroy() {
+            public void onDestroy() {
               if (tts != null) { tts.stop(); tts.shutdown(); tts = null; }
               super.onDestroy();
             }
