@@ -1,14 +1,13 @@
 {
  "logs": [
   {
-   "id": "mwhza42gopeos",
-   "pid": "mwhz9zr4huvj5",
-   "name": "CARU",
-   "ts": "2026-11-15T15:17:08.248Z",
+   "id": "mwhzgpl5y9xp1",
+   "pid": "mwhzgnax6j0zf",
+   "name": "caru",
+   "ts": "2026-11-15T15:22:16.073Z",
    "date": "2026-11-15",
-   "out": "2026-11-15T15:17:12.199Z",
-   "late": 887,
-   "early": 0
+   "out": null,
+   "late": 892
   }
  ]
 }
