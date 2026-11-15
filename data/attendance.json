@@ -1,13 +1,3 @@
 {
- "logs": [
-  {
-   "id": "mwif7egqcksyt",
-   "pid": "mwif3v99rbl7h",
-   "name": "CARULLO",
-   "ts": "2026-11-15T22:42:55.609Z",
-   "date": "2026-11-16",
-   "out": null,
-   "late": 0
-  }
- ]
+ "logs": []
 }
