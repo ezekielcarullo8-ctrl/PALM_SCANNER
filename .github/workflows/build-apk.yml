@@ -1,0 +1,114 @@
+name: Build PalmPass APK
+
+# Put this file at:  .github/workflows/build-apk.yml
+# Keep index.html in the root of the same repo.
+# Runs on every change to index.html (data/*.json pushes from the app will NOT trigger it),
+# or manually from the Actions tab (Run workflow).
+on:
+  push:
+    branches: [main]
+    paths:
+      - "index.html"
+      - ".github/workflows/build-apk.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write   # lets the job publish the APK as a Release you can download on your phone
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      # ---------------------------------------------------------------
+      # 1. Make the app fully offline: download the MediaPipe engine,
+      #    its WASM files and the hand model, then point index.html to them.
+      # ---------------------------------------------------------------
+      - name: Bundle MediaPipe for offline use
+        run: |
+          set -e
+          test -f index.html || { echo "index.html not found in repo root"; exit 1; }
+          mkdir -p www/vendor/wasm
+          npm init -y >/dev/null
+          npm install --no-audit --no-fund @mediapipe/tasks-vision@0.10.14
+          cp node_modules/@mediapipe/tasks-vision/vision_bundle.mjs www/vendor/
+          cp node_modules/@mediapipe/tasks-vision/wasm/* www/vendor/wasm/
+          curl -fL --retry 3 -o www/vendor/hand_landmarker.task \
+            "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task"
+          cp index.html www/index.html
+          sed -i 's|https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/vision_bundle.mjs|./vendor/vision_bundle.mjs|g' www/index.html
+          sed -i 's|https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm|./vendor/wasm|g' www/index.html
+          sed -i 's|https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task|./vendor/hand_landmarker.task|g' www/index.html
+          # fail the build if any online dependency is left behind
+          if grep -n "cdn.jsdelivr.net\|storage.googleapis.com" www/index.html; then
+            echo "Online MediaPipe links still present - index.html changed shape"; exit 1
+          fi
+          ls -la www/vendor www/vendor/wasm
+
+      # ---------------------------------------------------------------
+      # 2. Wrap the web app in an Android project (Capacitor 6).
+      #    GitHub API calls (api.github.com) still work online from inside the app.
+      # ---------------------------------------------------------------
+      - name: Create Android project
+        run: |
+          set -e
+          npm install --no-audit --no-fund @capacitor/core@6 @capacitor/cli@6 @capacitor/android@6
+          cat > capacitor.config.json <<'EOF'
+          {
+            "appId": "com.palmpass.app",
+            "appName": "PalmPass",
+            "webDir": "www",
+            "server": { "androidScheme": "https" },
+            "android": { "allowMixedContent": false }
+          }
+          EOF
+          npx cap add android
+          npx cap sync android
+
+      - name: Allow camera access
+        run: |
+          set -e
+          M=android/app/src/main/AndroidManifest.xml
+          sed -i 's|<application|<uses-permission android:name="android.permission.CAMERA" />\n    <uses-feature android:name="android.hardware.camera" android:required="false" />\n    <application|' "$M"
+          grep -n "CAMERA" "$M"
+
+      # ---------------------------------------------------------------
+      # 3. Build the APK
+      # ---------------------------------------------------------------
+      - name: Build debug APK
+        working-directory: android
+        run: |
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses >/dev/null 2>&1 || true
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon
+
+      - name: Rename APK
+        run: cp android/app/build/outputs/apk/debug/app-debug.apk PalmPass.apk
+
+      - name: Upload APK as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: PalmPass-apk
+          path: PalmPass.apk
+
+      # Publishes a Release so you can open the repo's Releases page on your phone and tap the APK.
+      - name: Publish Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: apk-${{ github.run_number }}
+          name: PalmPass APK #${{ github.run_number }}
+          files: PalmPass.apk
