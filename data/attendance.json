@@ -1,14 +1,13 @@
 {
  "logs": [
   {
-   "id": "mwi1aev7rp7ge",
-   "pid": "mwi1aazfbgsnt",
-   "name": "Ezek",
-   "ts": "2026-11-15T16:13:21.475Z",
+   "id": "mwi1clsksd5ha",
+   "pid": "mwi1cgzuswi3f",
+   "name": "CARULLO",
+   "ts": "2026-11-15T16:15:03.764Z",
    "date": "2026-11-16",
-   "out": "2026-11-15T16:13:27.638Z",
-   "late": 0,
-   "early": 1007
+   "out": null,
+   "late": 0
   }
  ]
 }
