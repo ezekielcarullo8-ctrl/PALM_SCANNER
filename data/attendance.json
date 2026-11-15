@@ -1,3 +1,12 @@
 {
- "logs": []
+ "logs": [
+  {
+   "id": "mwhr78o34wo6t",
+   "pid": "mwhr6ld7zk4xf",
+   "name": "CARULLO",
+   "ts": "2026-11-15T11:30:57.315Z",
+   "date": "2026-11-15",
+   "out": null
+  }
+ ]
 }
