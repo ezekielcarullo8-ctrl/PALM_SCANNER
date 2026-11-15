@@ -38,6 +38,15 @@
    "out": "2026-11-15T13:20:15.287Z",
    "late": 769,
    "early": 0
+  },
+  {
+   "id": "mwhva2xz26epf",
+   "pid": "mwhva0hh7n6yu",
+   "name": "Bea",
+   "ts": "2026-11-15T13:25:08.327Z",
+   "date": "2026-11-15",
+   "out": null,
+   "late": 775
   }
  ]
 }
