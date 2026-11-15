@@ -1,26 +1,6 @@
 {
  "logs": [
   {
-   "id": "mwi0mb8y1hiu5",
-   "pid": "mwhzxkd6wvzco",
-   "name": "CA",
-   "ts": "2026-11-15T15:54:37.042Z",
-   "date": "2026-11-15",
-   "out": "2026-11-15T15:54:41.041Z",
-   "late": 924,
-   "early": 0
-  },
-  {
-   "id": "mwi1926xzmeh7",
-   "pid": "mwhzxkd6wvzco",
-   "name": "CA",
-   "ts": "2026-11-15T16:12:18.391Z",
-   "date": "2026-11-16",
-   "out": "2026-11-15T16:12:29.088Z",
-   "late": 0,
-   "early": 1008
-  },
-  {
    "id": "mwi1aev7rp7ge",
    "pid": "mwi1aazfbgsnt",
    "name": "Ezek",
