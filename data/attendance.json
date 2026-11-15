@@ -1,16 +1,6 @@
 {
  "logs": [
   {
-   "id": "mwhvjbe0hqic8",
-   "pid": "mwhvhble1x1lk",
-   "name": "E",
-   "ts": "2026-11-15T13:32:19.175Z",
-   "date": "2026-11-15",
-   "out": "2026-11-15T13:34:11.505Z",
-   "late": 782,
-   "early": 0
-  },
-  {
    "id": "mwhvke2j46bnk",
    "pid": "mwhvk6m635lnf",
    "name": "B",
