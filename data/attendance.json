@@ -1,20 +1,3 @@
 {
- "logs": [
-  {
-   "id": "mwhrzndetsnay",
-   "pid": "mwhrzi9k8e7oj",
-   "name": "CARULLO",
-   "ts": "2026-11-15T11:53:02.738Z",
-   "date": "2026-11-15",
-   "out": null
-  },
-  {
-   "id": "mwhrzzoamxcip",
-   "pid": "mwhrvxx3u86so",
-   "name": "Be",
-   "ts": "2026-11-15T11:53:18.682Z",
-   "date": "2026-11-15",
-   "out": null
-  }
- ]
+ "logs": []
 }
