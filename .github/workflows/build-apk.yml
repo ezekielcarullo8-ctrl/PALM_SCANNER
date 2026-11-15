@@ -79,11 +79,79 @@ jobs:
           npx cap add android
           npx cap sync android
 
+      - name: Add native Android text-to-speech bridge
+        run: |
+          set -e
+          mkdir -p android/app/src/main/java/com/palmpass/app
+          cat > android/app/src/main/java/com/palmpass/app/MainActivity.java <<'JAVA'
+          package com.palmpass.app;
+
+          import android.os.Bundle;
+          import android.speech.tts.TextToSpeech;
+          import android.webkit.JavascriptInterface;
+          import com.getcapacitor.BridgeActivity;
+          import java.util.Locale;
+
+          public class MainActivity extends BridgeActivity {
+            private TextToSpeech tts;
+            private boolean ttsReady = false;
+            private String pendingSpeech;
+
+            @Override
+            public void onCreate(Bundle savedInstanceState) {
+              super.onCreate(savedInstanceState);
+              getBridge().getWebView().addJavascriptInterface(new Object() {
+                @JavascriptInterface
+                public void speak(String text) {
+                  runOnUiThread(() -> {
+                    if (tts == null) return;
+                    if (!ttsReady) { pendingSpeech = text; return; }
+                    tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, "palmpass-" + System.currentTimeMillis());
+                  });
+                }
+                @JavascriptInterface
+                public void stop() {
+                  runOnUiThread(() -> { if (tts != null) tts.stop(); pendingSpeech = null; });
+                }
+              }, "PalmPassNativeTTS");
+              tts = new TextToSpeech(this, status -> {
+                if (status == TextToSpeech.SUCCESS) {
+                  tts.setLanguage(Locale.US);
+                  if (tts.getVoices() != null) {
+                    for (android.speech.tts.Voice voice : tts.getVoices()) {
+                      String name = voice.getName().toLowerCase(Locale.ROOT);
+                      if (voice.getLocale().getLanguage().equals("en") && name.contains("female")) {
+                        tts.setVoice(voice);
+                        break;
+                      }
+                    }
+                  }
+                  tts.setPitch(1.08f);
+                  tts.setSpeechRate(0.94f);
+                  ttsReady = true;
+                  if (pendingSpeech != null) {
+                    String text = pendingSpeech;
+                    pendingSpeech = null;
+                    tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, "palmpass-ready");
+                  }
+                }
+              });
+            }
+
+            @Override
+            protected void onDestroy() {
+              if (tts != null) { tts.stop(); tts.shutdown(); tts = null; }
+              super.onDestroy();
+            }
+          }
+          JAVA
+          test -s android/app/src/main/java/com/palmpass/app/MainActivity.java
+
       - name: Allow camera access
         run: |
           set -e
           M=android/app/src/main/AndroidManifest.xml
-          sed -i 's|<application|<uses-permission android:name="android.permission.CAMERA" />\n    <uses-feature android:name="android.hardware.camera" android:required="false" />\n    <application|' "$M"
+          sed -i 's|<application|<uses-permission android:name="android.permission.CAMERA" />\n    <uses-feature android:name="android.hardware.camera" android:required="false" />\n    <queries><intent><action android:name="android.intent.action.TTS_SERVICE" /></intent></queries>\n    <application|' "$M"
           grep -n "CAMERA" "$M"
 
       # ---------------------------------------------------------------
