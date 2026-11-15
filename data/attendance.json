@@ -1,14 +1,6 @@
 {
  "logs": [
   {
-   "id": "mwhrnn2jlnk0i",
-   "pid": "mwhrga1docsg4",
-   "name": "CARULLO",
-   "ts": "2026-11-15T11:43:42.475Z",
-   "date": "2026-11-15",
-   "out": null
-  },
-  {
    "id": "mwhrvz7ufzyd3",
    "pid": "mwhrvxx3u86so",
    "name": "Be",
