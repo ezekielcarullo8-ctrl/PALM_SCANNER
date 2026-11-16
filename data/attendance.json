@@ -1,16 +1,6 @@
 {
  "logs": [
   {
-   "id": "mwjcz5obhfxmq",
-   "pid": "mwj8zc0j7hobl",
-   "name": "CARULLO",
-   "ts": "2026-11-16T14:28:17.915Z",
-   "date": "2026-11-16",
-   "out": "2026-11-16T14:29:10.674Z",
-   "late": 58,
-   "early": 0
-  },
-  {
    "id": "mwjczosgjsroz",
    "pid": "mwjczktaml0pj",
    "name": "ANN",
