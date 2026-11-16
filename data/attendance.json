@@ -29,6 +29,15 @@
    "out": "2026-11-16T21:49:45.244Z",
    "late": 0,
    "early": 671
+  },
+  {
+   "id": "mwjvz30dyv1f4",
+   "pid": "mwjvycj2wsy5m",
+   "name": "CC",
+   "ts": "2026-11-16T23:20:07.165Z",
+   "date": "2026-11-17",
+   "out": null,
+   "late": 0
   }
  ]
 }
