@@ -1,24 +1,32 @@
 name: Build PalmPass APK
 
 # Put this file at:  .github/workflows/build-apk.yml
-# Keep index.html in the root of the same repo.
-# Runs on every change to index.html (data/*.json pushes from the app will NOT trigger it),
+# Repo layout:       index.html  +  assets/ folder (the 5 PNG icon files)
+# Runs when index.html / assets / this file change (data/*.json pushes from the app do NOT trigger it),
 # or manually from the Actions tab (Run workflow).
 on:
   push:
-    branches: [main]
+    branches: [main, master]
     paths:
       - "index.html"
+      - "assets/**"
       - ".github/workflows/build-apk.yml"
   workflow_dispatch:
 
 permissions:
   contents: write   # lets the job publish the APK as a Release you can download on your phone
 
+concurrency:
+  group: build-apk
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 45
+    env:
+      CI: "true"
+      BRAND_COLOR: "#160e3d"
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -34,28 +42,37 @@ jobs:
           distribution: temurin
           java-version: 17
 
+      # Guarantees the Android platform/build-tools exist and licences are accepted
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: "platform-tools platforms;android-34 build-tools;34.0.0"
+
       # ---------------------------------------------------------------
       # 1. Make the app fully offline: download the MediaPipe engine,
       #    its WASM files and the hand model, then point index.html to them.
+      #    (vision_bundle.mjs is renamed to .js because Android WebView can
+      #     refuse to run a module script served with an unknown .mjs type.)
       # ---------------------------------------------------------------
       - name: Bundle MediaPipe for offline use
         run: |
           set -e
-          test -f index.html || { echo "index.html not found in repo root"; exit 1; }
+          test -f index.html || { echo "::error::index.html not found in the repo root"; exit 1; }
           mkdir -p www/vendor/wasm
           npm init -y >/dev/null
           npm install --no-audit --no-fund @mediapipe/tasks-vision@0.10.14
-          cp node_modules/@mediapipe/tasks-vision/vision_bundle.mjs www/vendor/
+          cp node_modules/@mediapipe/tasks-vision/vision_bundle.mjs www/vendor/vision_bundle.js
           cp node_modules/@mediapipe/tasks-vision/wasm/* www/vendor/wasm/
-          curl -fL --retry 3 -o www/vendor/hand_landmarker.task \
+          curl -fL --retry 4 --retry-delay 3 -o www/vendor/hand_landmarker.task \
             "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task"
+          test "$(stat -c%s www/vendor/hand_landmarker.task)" -gt 1000000 || { echo "::error::hand model download is incomplete"; exit 1; }
+          test -s www/vendor/wasm/vision_wasm_internal.wasm || { echo "::error::MediaPipe wasm files missing"; exit 1; }
           cp index.html www/index.html
-          sed -i 's|https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/vision_bundle.mjs|./vendor/vision_bundle.mjs|g' www/index.html
+          sed -i 's|https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/vision_bundle.mjs|./vendor/vision_bundle.js|g' www/index.html
           sed -i 's|https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm|./vendor/wasm|g' www/index.html
           sed -i 's|https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task|./vendor/hand_landmarker.task|g' www/index.html
-          # fail the build if any online dependency is left behind
           if grep -n "cdn.jsdelivr.net\|storage.googleapis.com" www/index.html; then
-            echo "Online MediaPipe links still present - index.html changed shape"; exit 1
+            echo "::error::Online MediaPipe links are still in index.html (the file changed shape)"; exit 1
           fi
           ls -la www/vendor www/vendor/wasm
 
@@ -66,106 +83,81 @@ jobs:
       - name: Create Android project
         run: |
           set -e
-          npm install --no-audit --no-fund @capacitor/core@6 @capacitor/cli@6 @capacitor/android@6
-          cat > capacitor.config.json <<'EOF'
+          npm install --no-audit --no-fund @capacitor/core@6 @capacitor/cli@6 @capacitor/android@6 @capacitor/app@6 @capacitor/assets@3
+          # native text-to-speech (British voice inside the APK). Optional: the app falls back to the built-in voice.
+          npm install --no-audit --no-fund @capacitor-community/text-to-speech@6 || echo "::warning::Native voice plugin could not be installed; the built-in voice will be used"
+          cat > capacitor.config.json <<'JSON'
           {
             "appId": "com.palmpass.app",
             "appName": "PalmPass",
             "webDir": "www",
+            "backgroundColor": "#160e3d",
             "server": { "androidScheme": "https" },
             "android": { "allowMixedContent": false }
           }
-          EOF
+          JSON
           npx cap add android
-          npx cap sync android
 
-      - name: Add native Android text-to-speech bridge
+      # ---------------------------------------------------------------
+      # 3. App icon + splash screen from the ./assets folder
+      # ---------------------------------------------------------------
+      - name: Generate app icon and splash
         run: |
-          set -e
-          mkdir -p android/app/src/main/java/com/palmpass/app
-          cat > android/app/src/main/java/com/palmpass/app/MainActivity.java <<'JAVA'
-          package com.palmpass.app;
+          if [ -f assets/icon-only.png ]; then
+            npx capacitor-assets generate --android --assetPath assets \
+              --iconBackgroundColor "$BRAND_COLOR" --iconBackgroundColorDark "$BRAND_COLOR" \
+              --splashBackgroundColor "$BRAND_COLOR" --splashBackgroundColorDark "$BRAND_COLOR" \
+              || echo "::warning::Icon generation failed - the default Capacitor icon will be used"
+            ls android/app/src/main/res | grep -i "mipmap\|drawable" | head -20 || true
+          else
+            echo "::warning::assets/icon-only.png not found - the default Capacitor icon will be used"
+          fi
 
-          import android.os.Bundle;
-          import android.speech.tts.TextToSpeech;
-          import android.webkit.JavascriptInterface;
-          import com.getcapacitor.BridgeActivity;
-          import java.util.Locale;
+      - name: Sync web assets and plugins
+        run: npx cap sync android
 
-          public class MainActivity extends BridgeActivity {
-            private TextToSpeech tts;
-            private boolean ttsReady = false;
-            private String pendingSpeech;
-
-            @Override
-            public void onCreate(Bundle savedInstanceState) {
-              super.onCreate(savedInstanceState);
-              getBridge().getWebView().addJavascriptInterface(new Object() {
-                @JavascriptInterface
-                public void speak(String text) {
-                  runOnUiThread(() -> {
-                    if (tts == null) return;
-                    if (!ttsReady) { pendingSpeech = text; return; }
-                    tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, "palmpass-" + System.currentTimeMillis());
-                  });
-                }
-                @JavascriptInterface
-                public void stop() {
-                  runOnUiThread(() -> { if (tts != null) tts.stop(); pendingSpeech = null; });
-                }
-              }, "PalmPassNativeTTS");
-              tts = new TextToSpeech(this, status -> {
-                if (status == TextToSpeech.SUCCESS) {
-                  tts.setLanguage(Locale.US);
-                  if (tts.getVoices() != null) {
-                    for (android.speech.tts.Voice voice : tts.getVoices()) {
-                      String name = voice.getName().toLowerCase(Locale.ROOT);
-                      if (voice.getLocale().getLanguage().equals("en") && name.contains("female")) {
-                        tts.setVoice(voice);
-                        break;
-                      }
-                    }
-                  }
-                  tts.setPitch(1.08f);
-                  tts.setSpeechRate(0.94f);
-                  ttsReady = true;
-                  if (pendingSpeech != null) {
-                    String text = pendingSpeech;
-                    pendingSpeech = null;
-                    tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, "palmpass-ready");
-                  }
-                }
-              });
-            }
-
-            @Override
-            public void onDestroy() {
-              if (tts != null) { tts.stop(); tts.shutdown(); tts = null; }
-              super.onDestroy();
-            }
-          }
-          JAVA
-          test -s android/app/src/main/java/com/palmpass/app/MainActivity.java
-
-      - name: Allow camera access
+      - name: Patch Android project
         run: |
           set -e
           M=android/app/src/main/AndroidManifest.xml
-          sed -i 's|<application|<uses-permission android:name="android.permission.CAMERA" />\n    <uses-feature android:name="android.hardware.camera" android:required="false" />\n    <queries><intent><action android:name="android.intent.action.TTS_SERVICE" /></intent></queries>\n    <application|' "$M"
+          # camera permission
+          sed -i 's|<application|<uses-permission android:name="android.permission.CAMERA" />\n    <uses-feature android:name="android.hardware.camera" android:required="false" />\n    <application|' "$M"
           grep -n "CAMERA" "$M"
+          # dark status bar + navigation bar to match the app
+          S=android/app/src/main/res/values/styles.xml
+          sed -i '/<style name="AppTheme.NoActionBar"/a\        <item name="android:statusBarColor">#160E3D</item>\n        <item name="android:navigationBarColor">#160E3D</item>\n        <item name="android:windowLightStatusBar">false</item>' "$S"
+          grep -n "statusBarColor" "$S"
+          # every build needs a higher versionCode, otherwise Android refuses to update the installed app
+          G=android/app/build.gradle
+          sed -i "s/versionCode 1/versionCode ${{ github.run_number }}/; s/versionName \"1.0\"/versionName \"1.${{ github.run_number }}\"/" "$G"
+          grep -n "versionCode\|versionName" "$G"
 
       # ---------------------------------------------------------------
-      # 3. Build the APK
+      # 4. Sign with the SAME key every time. A new random key on every build makes Android
+      #    say "App not installed" when you update, forcing an uninstall that wipes your data.
+      # ---------------------------------------------------------------
+      - name: Use stable signing key
+        run: |
+          set -e
+          mkdir -p ~/.android
+          echo "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" | base64 -d > ~/.android/debug.keystore
+          keytool -list -keystore ~/.android/debug.keystore -storepass android | head -5
+
+      # ---------------------------------------------------------------
+      # 5. Build the APK
       # ---------------------------------------------------------------
       - name: Build debug APK
         working-directory: android
         run: |
-          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses >/dev/null 2>&1 || true
           chmod +x gradlew
-          ./gradlew assembleDebug --no-daemon
+          ./gradlew assembleDebug --no-daemon --stacktrace
 
-      - name: Rename APK
-        run: cp android/app/build/outputs/apk/debug/app-debug.apk PalmPass.apk
+      - name: Check and rename APK
+        run: |
+          set -e
+          test -f android/app/build/outputs/apk/debug/app-debug.apk || { echo "::error::APK was not produced"; exit 1; }
+          cp android/app/build/outputs/apk/debug/app-debug.apk PalmPass.apk
+          ls -la PalmPass.apk
 
       - name: Upload APK as artifact
         uses: actions/upload-artifact@v4
@@ -174,7 +166,9 @@ jobs:
           path: PalmPass.apk
 
       # Publishes a Release so you can open the repo's Releases page on your phone and tap the APK.
+      # Non-blocking: if your repo forbids this, the artifact above is still available.
       - name: Publish Release
+        continue-on-error: true
         uses: softprops/action-gh-release@v2
         with:
           tag_name: apk-${{ github.run_number }}
