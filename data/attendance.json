@@ -9,25 +9,6 @@
    "out": "2026-11-16T14:32:17.131Z",
    "late": 61,
    "early": 0
-  },
-  {
-   "id": "mwjsc0ngwendc",
-   "pid": "mwjd1o7a7sb8r",
-   "name": "CARULLO",
-   "ts": "2026-11-16T21:38:12.172Z",
-   "date": "2026-11-17",
-   "out": "2026-11-16T21:40:10.010Z",
-   "late": 0,
-   "early": 680
-  },
-  {
-   "id": "mwjsfppocp992",
-   "pid": "mwjsfe433hvka",
-   "name": "CARULLO",
-   "ts": "2026-11-16T21:41:04.620Z",
-   "date": "2026-11-17",
-   "out": null,
-   "late": 0
   }
  ]
 }
