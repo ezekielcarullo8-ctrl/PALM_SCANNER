@@ -1,16 +1,6 @@
 {
  "logs": [
   {
-   "id": "mwj2t3r55wkzn",
-   "pid": "mwj2szlkq0b9p",
-   "name": "AI",
-   "ts": "2026-11-16T09:43:39.329Z",
-   "date": "2026-11-16",
-   "out": "2026-11-16T09:43:52.045Z",
-   "late": 553,
-   "early": 0
-  },
-  {
    "id": "mwj2ulq5hxeuz",
    "pid": "mwj2ugn969fxv",
    "name": "AIR",
