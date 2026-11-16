@@ -1,16 +1,6 @@
 {
  "logs": [
   {
-   "id": "mwiywm7vp00bm",
-   "pid": "mwiyvfg2j9er0",
-   "name": "E",
-   "ts": "2026-11-16T07:54:24.763Z",
-   "date": "2026-11-16",
-   "out": "2026-11-16T09:39:35.081Z",
-   "late": 444,
-   "early": 0
-  },
-  {
    "id": "mwj2p6k8jbql9",
    "pid": "mwj2p1yavxypv",
    "name": "CARU",
