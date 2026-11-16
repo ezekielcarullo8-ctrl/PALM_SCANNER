@@ -1,14 +1,13 @@
 {
  "logs": [
   {
-   "id": "mwj43s8980kwr",
+   "id": "mwj4blni0j30o",
    "pid": "mwj43h3utv5iq",
    "name": "ezekiel",
-   "ts": "2026-11-16T10:19:57.225Z",
+   "ts": "2026-11-16T10:26:01.950Z",
    "date": "2026-11-16",
-   "out": "2026-11-16T10:20:01.301Z",
-   "late": 589,
-   "early": 0
+   "out": null,
+   "late": 0
   }
  ]
 }
