@@ -77,15 +77,19 @@ jobs:
           ls -la www/vendor www/vendor/wasm
 
       # ---------------------------------------------------------------
-      # 2. Wrap the web app in an Android project (Capacitor 6).
+      # 2. Install dependencies and wrap the web app in an Android project (Capacitor 6).
       #    GitHub API calls (api.github.com) still work online from inside the app.
       # ---------------------------------------------------------------
+      - name: Install dependencies
+        run: |
+          set -e
+          npm install
+          npm install @capacitor-community/text-to-speech@4.0.2
+          npm install --no-audit --no-fund @capacitor/core@6 @capacitor/cli@6 @capacitor/android@6 @capacitor/app@6 @capacitor/assets@3 esbuild
+
       - name: Create Android project
         run: |
           set -e
-          npm install --no-audit --no-fund @capacitor/core@6 @capacitor/cli@6 @capacitor/android@6 @capacitor/app@6 @capacitor/assets@3
-          # Native Android TTS must be installed and bundled into the WebView app.
-          npm install --no-audit --no-fund @capacitor-community/text-to-speech@6 esbuild
           mkdir -p www/vendor
           cat > tts-bridge-entry.js <<'JS'
           import { TextToSpeech } from "@capacitor-community/text-to-speech";
