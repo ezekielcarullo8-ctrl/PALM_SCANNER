@@ -1,16 +1,6 @@
 {
  "logs": [
   {
-   "id": "mwjd1sbu7erlz",
-   "pid": "mwjd1o7a7sb8r",
-   "name": "CARULLO",
-   "ts": "2026-11-16T14:30:20.585Z",
-   "date": "2026-11-16",
-   "out": "2026-11-16T14:30:25.177Z",
-   "late": 60,
-   "early": 0
-  },
-  {
    "id": "mwjd2g1i993an",
    "pid": "mwjd2blqe5sol",
    "name": "Ezek",
