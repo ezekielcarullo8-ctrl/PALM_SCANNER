@@ -1,26 +1,6 @@
 {
  "logs": [
   {
-   "id": "mwj2r1600cfor",
-   "pid": "mwj2qve1fbadh",
-   "name": "BK",
-   "ts": "2026-11-16T09:42:02.663Z",
-   "date": "2026-11-16",
-   "out": "2026-11-16T09:47:03.791Z",
-   "late": 552,
-   "early": 0
-  },
-  {
-   "id": "mwj2si6vlne42",
-   "pid": "mwj2sbsoeltj4",
-   "name": "AIZA",
-   "ts": "2026-11-16T09:43:11.382Z",
-   "date": "2026-11-16",
-   "out": "2026-11-16T09:43:44.857Z",
-   "late": 553,
-   "early": 0
-  },
-  {
    "id": "mwj2t3r55wkzn",
    "pid": "mwj2szlkq0b9p",
    "name": "AI",
