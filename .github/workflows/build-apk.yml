@@ -84,8 +84,15 @@ jobs:
         run: |
           set -e
           npm install --no-audit --no-fund @capacitor/core@6 @capacitor/cli@6 @capacitor/android@6 @capacitor/app@6 @capacitor/assets@3
-          # native text-to-speech (British voice inside the APK). Optional: the app falls back to the built-in voice.
-          npm install --no-audit --no-fund @capacitor-community/text-to-speech@6 || echo "::warning::Native voice plugin could not be installed; the built-in voice will be used"
+          # Native Android TTS must be installed and bundled into the WebView app.
+          npm install --no-audit --no-fund @capacitor-community/text-to-speech@6 esbuild
+          mkdir -p www/vendor
+          cat > tts-bridge-entry.js <<'JS'
+          import { TextToSpeech } from "@capacitor-community/text-to-speech";
+          window.PalmPassTTS = TextToSpeech;
+          JS
+          npx esbuild tts-bridge-entry.js --bundle --format=esm --platform=browser --target=es2020 --outfile=www/vendor/tts-bridge.js
+          rm tts-bridge-entry.js
           cat > capacitor.config.json <<'JSON'
           {
             "appId": "com.palmpass.app",
@@ -101,20 +108,26 @@ jobs:
       # ---------------------------------------------------------------
       # 3. App icon + splash screen from the ./assets folder
       # ---------------------------------------------------------------
-      - name: Generate app icon and splash
+      - name: Generate and verify PalmPass launcher icon and splash
         run: |
-          if [ -f assets/icon-only.png ]; then
-            npx capacitor-assets generate --android --assetPath assets \
-              --iconBackgroundColor "$BRAND_COLOR" --iconBackgroundColorDark "$BRAND_COLOR" \
-              --splashBackgroundColor "$BRAND_COLOR" --splashBackgroundColorDark "$BRAND_COLOR" \
-              || echo "::warning::Icon generation failed - the default Capacitor icon will be used"
-            ls android/app/src/main/res | grep -i "mipmap\|drawable" | head -20 || true
-          else
-            echo "::warning::assets/icon-only.png not found - the default Capacitor icon will be used"
-          fi
+          set -euo pipefail
+          for asset in icon-only.png icon-foreground.png icon-background.png splash.png splash-dark.png; do
+            test -s "assets/$asset" || { echo "::error::Required icon/splash asset missing: assets/$asset"; exit 1; }
+          done
+          npx capacitor-assets generate --android --assetPath assets \
+            --iconBackgroundColor "$BRAND_COLOR" --iconBackgroundColorDark "$BRAND_COLOR" \
+            --splashBackgroundColor "$BRAND_COLOR" --splashBackgroundColorDark "$BRAND_COLOR"
+          # Fail instead of silently shipping the default Capacitor launcher icon.
+          test -s android/app/src/main/res/mipmap-hdpi/ic_launcher.png || { echo "::error::Launcher icon generation did not produce mipmap resources"; exit 1; }
+          test -s android/app/src/main/res/mipmap-mdpi/ic_launcher.png || { echo "::error::MDPI launcher icon is missing"; exit 1; }
+          find android/app/src/main/res -maxdepth 2 -type f \( -name 'ic_launcher*' -o -name 'splash*' \) -print
+          grep -R -q 'ic_launcher' android/app/src/main/AndroidManifest.xml || { echo "::error::Android manifest does not reference the launcher icon"; exit 1; }
 
       - name: Sync web assets and plugins
-        run: npx cap sync android
+        run: |
+          set -e
+          test -s www/vendor/tts-bridge.js || { echo "::error::Native TTS JavaScript bridge is missing"; exit 1; }
+          npx cap sync android
 
       - name: Patch Android project
         run: |
