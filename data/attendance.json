@@ -9,6 +9,15 @@
    "out": "2026-11-16T09:39:35.081Z",
    "late": 444,
    "early": 0
+  },
+  {
+   "id": "mwj2p6k8jbql9",
+   "pid": "mwj2p1yavxypv",
+   "name": "CARU",
+   "ts": "2026-11-16T09:40:36.344Z",
+   "date": "2026-11-16",
+   "out": null,
+   "late": 550
   }
  ]
 }
