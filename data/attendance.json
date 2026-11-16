@@ -11,14 +11,13 @@
    "early": 0
   },
   {
-   "id": "mwjvz30dyv1f4",
-   "pid": "mwjvycj2wsy5m",
-   "name": "CC",
-   "ts": "2026-11-16T23:20:07.165Z",
+   "id": "mwjw3bir0inxg",
+   "pid": "mwjw31ej0r5uj",
+   "name": "CARULLO",
+   "ts": "2026-11-16T23:23:24.819Z",
    "date": "2026-11-17",
-   "out": "2026-11-16T23:20:10.854Z",
-   "late": 0,
-   "early": 580
+   "out": null,
+   "late": 0
   }
  ]
 }
