@@ -66,6 +66,15 @@
    "date": "2026-11-16",
    "out": null,
    "late": 554
+  },
+  {
+   "id": "mwj2x6hneqt7g",
+   "pid": "mwj2x3jcq77xv",
+   "name": "ARR",
+   "ts": "2026-11-16T09:46:49.499Z",
+   "date": "2026-11-16",
+   "out": null,
+   "late": 556
   }
  ]
 }
