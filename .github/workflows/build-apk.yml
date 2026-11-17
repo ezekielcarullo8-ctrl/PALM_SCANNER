@@ -49,12 +49,12 @@ jobs:
           packages: "platform-tools platforms;android-34 build-tools;34.0.0"
 
       # ---------------------------------------------------------------
-      # 1. Make the app fully offline: download the MediaPipe engine,
-      #    its WASM files and the hand and face models, then point index.html to them.
+      # 1. Make biometric inference fully offline: bundle MediaPipe plus the pinned
+      #    face-api.js library and its three required model manifests/shards.
       #    (vision_bundle.mjs is renamed to .js because Android WebView can
       #     refuse to run a module script served with an unknown .mjs type.)
       # ---------------------------------------------------------------
-      - name: Bundle MediaPipe for offline use
+      - name: Bundle MediaPipe and FaceAPI for offline use
         run: |
           set -e
           test -f index.html || { echo "::error::index.html not found in the repo root"; exit 1; }
@@ -70,16 +70,39 @@ jobs:
             "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task"
           test "$(stat -c%s www/vendor/face_landmarker.task)" -gt 1000000 || { echo "::error::face model download is incomplete"; exit 1; }
           test -s www/vendor/wasm/vision_wasm_internal.wasm || { echo "::error::MediaPipe wasm files missing"; exit 1; }
+
+          # Bundle the same pinned FaceAPI version used by the web app. Its browser
+          # build registers window.faceapi, and loadFromUri reads these local weights.
+          mkdir -p www/vendor/face-api-models
+          curl -fL --retry 4 --retry-delay 3 -o www/vendor/face-api.js \
+            "https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.15/dist/face-api.js"
+          FACE_MODEL_BASE="https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.15/model"
+          for model in tiny_face_detector_model face_landmark_68_tiny_model face_recognition_model; do
+            curl -fL --retry 4 --retry-delay 3 -o "www/vendor/face-api-models/${model}-weights_manifest.json" \
+              "${FACE_MODEL_BASE}/${model}-weights_manifest.json"
+          done
+          for shard in tiny_face_detector_model.bin face_landmark_68_tiny_model.bin face_recognition_model.bin; do
+            curl -fL --retry 4 --retry-delay 3 -o "www/vendor/face-api-models/${shard}" \
+              "${FACE_MODEL_BASE}/${shard}"
+          done
+          test -s www/vendor/face-api.js || { echo "::error::FaceAPI browser library download failed"; exit 1; }
+          for asset in tiny_face_detector_model-weights_manifest.json tiny_face_detector_model.bin face_landmark_68_tiny_model-weights_manifest.json face_landmark_68_tiny_model.bin face_recognition_model-weights_manifest.json face_recognition_model.bin; do
+            test -s "www/vendor/face-api-models/$asset" || { echo "::error::FaceAPI model asset missing: $asset"; exit 1; }
+          done
+          test "$(stat -c%s www/vendor/face-api-models/face_recognition_model.bin)" -gt 5000000 || { echo "::error::Face recognition weights are incomplete"; exit 1; }
+
           cp index.html www/index.html
           sed -i 's|https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/vision_bundle.mjs|./vendor/vision_bundle.js|g' www/index.html
           sed -i 's|https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm|./vendor/wasm|g' www/index.html
           sed -i 's|https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task|./vendor/hand_landmarker.task|g' www/index.html
           sed -i 's|https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task|./vendor/face_landmarker.task|g' www/index.html
+          sed -i 's|https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.15/dist/face-api.js|./vendor/face-api.js|g' www/index.html
+          sed -i 's|https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.15/model|./vendor/face-api-models|g' www/index.html
           if grep -n "cdn.jsdelivr.net\|storage.googleapis.com" www/index.html; then
-            echo "::error::Online MediaPipe links are still in index.html (the file changed shape)"; exit 1
+            echo "::error::External CDN/model links are still in www/index.html (the file changed shape)"; exit 1
           fi
           test -s www/vendor/face_landmarker.task || { echo "::error::face model is missing from offline bundle"; exit 1; }
-          ls -la www/vendor www/vendor/wasm
+          ls -la www/vendor www/vendor/wasm www/vendor/face-api-models
 
       # ---------------------------------------------------------------
       # 2. Install dependencies and wrap the web app in an Android project (Capacitor 6).
