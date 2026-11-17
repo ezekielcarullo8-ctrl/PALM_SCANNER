@@ -50,7 +50,7 @@ jobs:
 
       # ---------------------------------------------------------------
       # 1. Make the app fully offline: download the MediaPipe engine,
-      #    its WASM files and the hand model, then point index.html to them.
+      #    its WASM files and the hand and face models, then point index.html to them.
       #    (vision_bundle.mjs is renamed to .js because Android WebView can
       #     refuse to run a module script served with an unknown .mjs type.)
       # ---------------------------------------------------------------
@@ -66,14 +66,19 @@ jobs:
           curl -fL --retry 4 --retry-delay 3 -o www/vendor/hand_landmarker.task \
             "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task"
           test "$(stat -c%s www/vendor/hand_landmarker.task)" -gt 1000000 || { echo "::error::hand model download is incomplete"; exit 1; }
+          curl -fL --retry 4 --retry-delay 3 -o www/vendor/face_landmarker.task \
+            "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task"
+          test "$(stat -c%s www/vendor/face_landmarker.task)" -gt 1000000 || { echo "::error::face model download is incomplete"; exit 1; }
           test -s www/vendor/wasm/vision_wasm_internal.wasm || { echo "::error::MediaPipe wasm files missing"; exit 1; }
           cp index.html www/index.html
           sed -i 's|https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/vision_bundle.mjs|./vendor/vision_bundle.js|g' www/index.html
           sed -i 's|https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm|./vendor/wasm|g' www/index.html
           sed -i 's|https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task|./vendor/hand_landmarker.task|g' www/index.html
+          sed -i 's|https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task|./vendor/face_landmarker.task|g' www/index.html
           if grep -n "cdn.jsdelivr.net\|storage.googleapis.com" www/index.html; then
             echo "::error::Online MediaPipe links are still in index.html (the file changed shape)"; exit 1
           fi
+          test -s www/vendor/face_landmarker.task || { echo "::error::face model is missing from offline bundle"; exit 1; }
           ls -la www/vendor www/vendor/wasm
 
       # ---------------------------------------------------------------
