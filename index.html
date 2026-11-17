@@ -1,0 +1,581 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta http-equiv="Cache-Control" content="no-cache"><meta name="theme-color" content="#05060e"><meta name="color-scheme" content="dark">
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
+<title>PalmPass · Smart Palm Attendance</title>
+<style>
+:root{--bg:#05060e;--ink:#f6f7ff;--mut:#8f96b8;--line:rgba(255,255,255,.08);--line2:rgba(255,255,255,.15);--a:#7c5cff;--b:#22d3ee;--p:#ff5fa2;--g:#34d399;--o:#fbbf24;--r:#fb7185;--grad:linear-gradient(135deg,#7c5cff,#4f8cff 55%,#22d3ee);--grad2:linear-gradient(135deg,#ff5fa2,#7c5cff);--ease:cubic-bezier(.22,.9,.28,1)}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{background:var(--bg)}
+html,body{height:100%;overflow:hidden}
+body{color:var(--ink);font:15px/1.45 "Inter","SF Pro Display","Segoe UI",system-ui,-apple-system,Roboto,sans-serif;-webkit-font-smoothing:antialiased;display:flex;flex-direction:column;padding-top:env(safe-area-inset-top);position:relative}
+body:before{content:"";position:fixed;inset:0;z-index:-1;background:radial-gradient(55% 38% at 6% -4%,#5b3df070,transparent 72%),radial-gradient(48% 36% at 104% 18%,#0ea5c95c,transparent 72%),radial-gradient(60% 40% at 45% 112%,#ff5fa238,transparent 72%)}
+button{font-family:inherit;cursor:pointer}
+.hide{display:none!important}
+.i{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+header{display:flex;justify-content:space-between;align-items:center;padding:14px 18px 8px;width:100%}
+.brand{display:flex;gap:12px;align-items:center}
+.logo{width:42px;height:42px;border-radius:14px;background:var(--grad);display:grid;place-items:center;box-shadow:0 10px 30px #7c5cff77,inset 0 1px 0 #ffffff55}
+.logo .i{color:#fff;width:24px;height:24px}
+.brand b{font-size:18px;letter-spacing:-.01em;display:block;font-weight:800;line-height:1.1}
+.brand small{color:var(--mut);font-size:10.5px;letter-spacing:.16em;font-weight:600}
+.pill{display:flex;gap:7px;align-items:center;font-size:12px;font-weight:700;padding:7px 13px;border-radius:99px;border:1px solid var(--line);background:#ffffff0b;backdrop-filter:blur(10px)}
+.pill i{width:8px;height:8px;border-radius:50%;background:var(--mut)}.pill.ok i{background:var(--g);box-shadow:0 0 10px var(--g)}.pill.bad i{background:var(--r);box-shadow:0 0 10px var(--r)}.pill.sy i{background:var(--o);animation:pulse 1s infinite}
+@keyframes pulse{50%{opacity:.35}}
+.sync{display:flex;align-items:center;gap:10px;margin:0 0 14px;padding:10px 12px;border-radius:16px;background:linear-gradient(90deg,#fbbf2426,#fb718524);border:1px solid #fbbf2455;font-size:13px;font-weight:600;color:#fde68a}
+.sync .i{width:18px;height:18px}.sync span{flex:1}
+.sync button{border:0;border-radius:99px;padding:7px 13px;font-weight:800;font-size:12px;background:#fbbf24;color:#241a00}
+main{flex:1;overflow-y:auto;padding:8px 18px 22px;width:100%;scrollbar-width:none}main::-webkit-scrollbar{display:none}
+.tab{display:none;flex-direction:column;gap:14px}.tab.on{display:flex;animation:in .35s var(--ease)}
+@keyframes in{from{opacity:0;transform:translateY(10px)}}
+h1{font-size:28px;letter-spacing:-.03em;font-weight:800;line-height:1.1}h2{font-size:16px;font-weight:800;letter-spacing:-.01em}.mut{color:var(--mut);font-size:13px}
+.greet small{display:block;color:var(--mut);font-size:12.5px;font-weight:600;letter-spacing:.04em;margin-bottom:3px}
+.greet h1{background:linear-gradient(90deg,#fff,#c7d2fe 60%,#a5f3fc);-webkit-background-clip:text;background-clip:text;color:transparent}
+.card{background:linear-gradient(160deg,#ffffff12,#ffffff05);border:1px solid var(--line);border-radius:22px;padding:16px;backdrop-filter:blur(14px);box-shadow:inset 0 1px 0 #ffffff10,0 18px 40px #0005}
+#gcard{border-color:#7c5cffaa;background:linear-gradient(145deg,#261c5b66,#111a3bdd 55%,#102f49aa);box-shadow:inset 0 1px 0 #ffffff2a,0 0 0 1px #22d3ee22,0 18px 42px #20135f99;position:relative;overflow:hidden}#gcard:before{content:"SYNC & BACKUP";display:block;color:#a5f3fc;font-size:10px;font-weight:900;letter-spacing:.14em;margin:-2px 0 10px}#gcard .ch .ci{background:linear-gradient(135deg,#7c5cff,#22d3ee);color:#fff;box-shadow:0 8px 20px #22d3ee44}#gcard .ch h2{font-size:18px}#gcard .btn:not(.gh):not(.rd){background:linear-gradient(135deg,#7c5cff,#22d3ee);box-shadow:0 10px 26px #22d3ee44,inset 0 1px 0 #ffffff55}
+.ch{display:flex;align-items:center;gap:10px;margin-bottom:6px}.ch .ci{width:34px;height:34px;border-radius:11px;display:grid;place-items:center;background:#7c5cff26;color:#c4b5fd}.ch .ci .i{width:19px;height:19px}.ch h2{flex:1}
+.hero{position:relative;overflow:hidden;border-radius:28px;padding:20px;display:flex;align-items:center;gap:20px;background:radial-gradient(120% 120% at 0% 0%,#7c5cff 0%,transparent 58%),radial-gradient(100% 100% at 100% 100%,#0ea5c9 0%,transparent 58%),radial-gradient(70% 70% at 85% 0%,#ff5fa2aa 0%,transparent 62%),#12154a;box-shadow:0 24px 50px #5b3df055,inset 0 1px 0 #ffffff33}
+.hero:after{content:"";position:absolute;right:-50px;bottom:-60px;width:190px;height:190px;border-radius:50%;background:#ffffff14;pointer-events:none}
+.ring{position:relative;width:124px;height:124px;flex:none}.ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.ring circle{fill:none;stroke-width:10;stroke-linecap:round}.rt{stroke:#ffffff30}.rp{stroke:#fff;stroke-dasharray:326.7;stroke-dashoffset:326.7;transition:stroke-dashoffset .9s var(--ease);filter:drop-shadow(0 0 8px #ffffffaa)}
+.rc{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.rc big{font-size:38px;font-weight:800;line-height:1;letter-spacing:-.03em}.rc span{font-size:10.5px;opacity:.85;font-weight:600;margin-top:2px;letter-spacing:.04em}
+.hl{flex:1;display:flex;flex-direction:column;gap:8px;position:relative;z-index:1;min-width:0}
+.hl div{display:flex;align-items:center;gap:9px;padding:9px 12px;border-radius:14px;background:#ffffff1c;backdrop-filter:blur(8px);font-size:13px;font-weight:600}
+.hl i{width:9px;height:9px;border-radius:50%;flex:none}.hl span{flex:1;opacity:.92}.hl b{font-size:17px;font-variant-numeric:tabular-nums}
+.sched{display:flex;align-items:center;gap:14px;width:100%;text-align:left;color:var(--ink);padding:14px 16px}
+.sched .sc small{display:block;color:var(--mut);font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+.sched .sc b{font-size:20px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.sched .ar{flex:1;height:2px;border-radius:2px;background:linear-gradient(90deg,#7c5cff,#22d3ee);position:relative;opacity:.8}.sched .ar:after{content:"";position:absolute;right:0;top:-3px;width:8px;height:8px;border-top:2px solid #22d3ee;border-right:2px solid #22d3ee;transform:rotate(45deg)}
+.sched>.i{color:var(--mut);width:18px;height:18px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px}.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.tile{display:flex;flex-direction:column;gap:3px;text-align:left;color:var(--ink);width:100%}
+.tile .ti{width:36px;height:36px;border-radius:12px;display:grid;place-items:center;background:#22d3ee22;color:#67e8f9;margin-bottom:6px}.tile .ti .i{width:19px;height:19px}
+.tile span{color:var(--mut);font-size:12px;font-weight:600}.tile b{font-size:16px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.mini{text-align:center;padding:14px 8px}.mini b{display:block;font-size:26px;font-weight:800;letter-spacing:-.02em;line-height:1.1}.mini span{font-size:11.5px;color:var(--mut);font-weight:700;letter-spacing:.04em}
+.mini.g b{color:#6ee7b7}.mini.w b{color:#fcd34d}.mini.r b{color:#fda4af}
+.btn{border:0;border-radius:16px;padding:15px;font-weight:800;font-size:15px;color:#fff;background:var(--grad);box-shadow:0 10px 26px #7c5cff55,inset 0 1px 0 #ffffff44;width:100%;transition:transform .12s,filter .2s;display:flex;align-items:center;justify-content:center;gap:9px;letter-spacing:-.005em}
+.btn:hover{filter:brightness(1.08)}.btn:active{transform:scale(.97)}.btn .i{width:20px;height:20px}
+.btn.gh{background:#ffffff10;box-shadow:inset 0 1px 0 #ffffff12;border:1px solid var(--line2)}.btn.rd{background:#fb718520;color:#fecdd3;box-shadow:none;border:1px solid #fb718566}.btn.dg{background:linear-gradient(135deg,#fb7185,#e11d48);box-shadow:0 10px 26px #e11d4855}
+.btn:disabled{opacity:.5}
+.btn.off{color:#fda4af;border-color:#fb718566;background:#fb71851c}
+.row{display:flex;gap:10px}.row>*{flex:1}
+input,select{width:100%;padding:14px 15px;border-radius:14px;border:1px solid var(--line);background:#070916;color:var(--ink);font:inherit;font-size:15px;outline:none;transition:border-color .2s,box-shadow .2s}
+input:focus,select:focus{border-color:#7c5cff;box-shadow:0 0 0 4px #7c5cff30}
+select{appearance:none;-webkit-appearance:none;padding-right:38px;background:#070916 url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'><path d='M1 1.5l5 5 5-5' fill='none' stroke='%238f96b8' stroke-width='1.8' stroke-linecap='round'/></svg>") no-repeat right 15px center}
+label.f{display:block;font-size:11.5px;color:var(--mut);margin:12px 0 6px;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+input[type=range]{-webkit-appearance:none;appearance:none;height:6px;border-radius:9px;background:#ffffff1c;padding:0;border:0;margin:10px 0 4px}input[type=range]:focus{box-shadow:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:24px;height:24px;border-radius:50%;background:#fff;box-shadow:0 0 0 5px #7c5cff66,0 4px 12px #0008}
+input[type=range]::-moz-range-thumb{width:24px;height:24px;border:0;border-radius:50%;background:#fff;box-shadow:0 0 0 5px #7c5cff66,0 4px 12px #0008}
+.seg{display:flex;padding:4px;border-radius:17px;background:#ffffff0d;border:1px solid var(--line);gap:2px}
+.seg button{flex:1;border:0;background:none;color:var(--mut);padding:10px 4px;border-radius:13px;font-weight:700;font-size:13px;transition:.2s;display:flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap}.seg button .i{width:16px;height:16px}
+.seg button.on{background:var(--grad);color:#fff;box-shadow:0 6px 18px #7c5cff55,inset 0 1px 0 #ffffff44}
+.chips{display:flex;flex-wrap:wrap;gap:8px}.chips button{border:1px solid var(--line2);background:#ffffff0b;color:var(--ink);padding:10px 15px;border-radius:99px;font-weight:700;font-size:13px;transition:.2s}
+.chips button.on{background:var(--grad);border-color:transparent;box-shadow:0 6px 18px #7c5cff55}
+.tbtn{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;border:1px solid var(--line2);background:linear-gradient(160deg,#ffffff14,#ffffff06);color:var(--ink);padding:14px;border-radius:18px;transition:.2s;width:100%}
+.tbtn:active{transform:scale(.97)}.tbtn small{color:var(--mut);font-size:10.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;display:flex;align-items:center;gap:6px}.tbtn small .i{width:14px;height:14px}
+.tbtn b{font-size:26px;font-weight:800;letter-spacing:-.03em;font-variant-numeric:tabular-nums;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.big{display:flex;align-items:center;gap:14px;width:100%;text-align:left;padding:16px;border-radius:24px;border:1px solid var(--line);background:linear-gradient(160deg,#ffffff14,#ffffff05);color:var(--ink);transition:transform .15s,border-color .2s;box-shadow:inset 0 1px 0 #ffffff10,0 14px 34px #0005}
+.big:active{transform:scale(.98)}.big:hover{border-color:var(--line2)}
+.big .bi{width:52px;height:52px;border-radius:17px;display:grid;place-items:center;background:var(--grad);box-shadow:0 10px 24px #7c5cff55,inset 0 1px 0 #ffffff55;flex:none}.big .bi .i{color:#fff;width:26px;height:26px}
+.big.alt .bi{background:var(--grad2);box-shadow:0 10px 24px #ff5fa255,inset 0 1px 0 #ffffff55}
+.big b{display:block;font-size:16.5px;font-weight:800;letter-spacing:-.01em}.big span{color:var(--mut);font-size:12.5px}
+.big .cnt{margin-left:auto;font-weight:800;font-size:15px;padding:5px 12px;border-radius:99px;background:#ffffff12;border:1px solid var(--line)}.big>.i{color:var(--mut);width:18px;height:18px;flex:none}
+.tag{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:800;padding:3px 9px;border-radius:99px;border:1px solid var(--line2);color:var(--mut);background:#ffffff0a;white-space:nowrap}
+.tag.g{color:#6ee7b7;background:#34d39918;border-color:#34d39944}.tag.w{color:#fcd34d;background:#fbbf2418;border-color:#fbbf2444}.tag.r{color:#fda4af;background:#fb718518;border-color:#fb718544}.tag.o{color:#fdba74;background:#fb923c18;border-color:#fb923c44}
+.item{display:flex;gap:12px;align-items:center;padding:11px 2px;border-bottom:1px solid var(--line)}.item:last-child{border:0}
+.av{width:44px;height:44px;border-radius:15px;display:grid;place-items:center;font-weight:800;flex:none;color:#fff;text-shadow:0 1px 6px #0006;box-shadow:inset 0 1px 0 #ffffff55,0 6px 16px #0005}
+.item .t{flex:1;min-width:0}.item .t b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:15px;font-weight:700}
+.sub{display:flex;flex-wrap:wrap;gap:5px;align-items:center;margin-top:4px;color:var(--mut);font-size:12px}
+.item .when{text-align:right;font:700 11.5px/1.5 ui-monospace,Menlo,Consolas,monospace;color:#67e8f9;flex:none}.when .no{color:var(--o);font-style:normal}
+.ib{border:1px solid var(--line);background:#ffffff0c;color:var(--ink);width:38px;height:38px;border-radius:12px;display:grid;place-items:center;flex:none;transition:.15s}.ib:active{transform:scale(.92)}.ib .i{width:18px;height:18px}.ib.dng{color:#fda4af}
+.ib:disabled{opacity:.35;cursor:not-allowed}.palm-name{display:flex;align-items:center;gap:8px;min-width:0}.palm-name b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.palm-shot{width:100%;max-height:58vh;object-fit:contain;border-radius:18px;background:#02030a;border:1px solid #22d3ee55;box-shadow:0 0 30px #22d3ee22}.shot-empty{padding:28px 14px;border:1px dashed var(--line2);border-radius:18px;text-align:center;color:var(--mut);font-size:13px}
+.empty{text-align:center;color:var(--mut);padding:30px 10px;font-size:14px}.empty .i{width:34px;height:34px;opacity:.5;display:block;margin:0 auto 8px}
+.search{position:relative}.search .i{position:absolute;left:14px;top:50%;transform:translateY(-50%);width:18px;height:18px;color:var(--mut)}.search input{padding-left:42px}
+/* camera */
+.cam{position:relative;border-radius:28px;overflow:hidden;background:#000;aspect-ratio:3/4;max-height:58vh;width:100%;margin:0 auto;border:1px solid #22d3ee55;box-shadow:0 0 50px #22d3ee33,0 24px 60px #000a}
+.cam video,.cam canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.cam:before{content:"";position:absolute;inset:0;z-index:2;pointer-events:none;background:repeating-linear-gradient(0deg,#22d3ee10 0 1px,transparent 1px 4px),radial-gradient(transparent 50%,#000b)}
+.cam.outm{border-color:#ffd166aa;box-shadow:0 0 50px #ffd16644,0 24px 60px #000a}
+.guide{--c:#5ef2ff;position:absolute;border:0;border-radius:0;inset:15% 12%;pointer-events:none;transition:.3s;background:linear-gradient(var(--c),var(--c)) 0 0/34px 3px,linear-gradient(var(--c),var(--c)) 0 0/3px 34px,linear-gradient(var(--c),var(--c)) 100% 0/34px 3px,linear-gradient(var(--c),var(--c)) 100% 0/3px 34px,linear-gradient(var(--c),var(--c)) 0 100%/34px 3px,linear-gradient(var(--c),var(--c)) 0 100%/3px 34px,linear-gradient(var(--c),var(--c)) 100% 100%/34px 3px,linear-gradient(var(--c),var(--c)) 100% 100%/3px 34px;background-repeat:no-repeat;filter:drop-shadow(0 0 6px var(--c));z-index:3}
+.cam.lock .guide{--c:#6dffb0}
+.scanline{position:absolute;left:12%;right:12%;height:2px;background:linear-gradient(90deg,transparent,#5ef2ff,transparent);box-shadow:0 0 22px 4px #22d3ee88;z-index:3;animation:sl 2.4s ease-in-out infinite;pointer-events:none}
+@keyframes sl{0%,100%{top:18%}50%{top:80%}}
+.hud{position:absolute;z-index:3;top:12px;font:600 10px/1.55 ui-monospace,Menlo,Consolas,monospace;color:#5ef2ff;letter-spacing:.08em;pointer-events:none;text-shadow:0 0 6px #22d3ee;white-space:pre}#hudL{left:14px}#hudR{right:14px;text-align:right}
+.hint{position:absolute;left:12px;right:12px;bottom:12px;z-index:3;padding:11px 14px;font:600 12px/1.4 ui-monospace,Menlo,Consolas,monospace;letter-spacing:.07em;border-radius:10px;color:#5ef2ff;border:1px solid #22d3ee66;background:#02080ecc;text-align:center;text-transform:uppercase;backdrop-filter:blur(8px)}
+.hint.ok{color:#6dffb0;border-color:#6dffb0;background:#02140ccc}.hint.warn{color:#ffd166;border-color:#ffd166;background:#1a1202cc}
+.verdict{position:absolute;z-index:4;left:0;right:0;top:38%;text-align:center;font:800 22px ui-monospace,Menlo,Consolas,monospace;letter-spacing:.12em;padding:16px 8px;backdrop-filter:blur(3px)}
+.verdict.g{color:#6dffb0;background:#02140ccc;border-block:2px solid #6dffb0;text-shadow:0 0 18px #6dffb0}.verdict.r{color:#ff5470;background:#1a0208cc;border-block:2px solid #ff5470;text-shadow:0 0 18px #ff5470}.verdict.y{color:#ffd166;background:#1a1202cc;border-block:2px solid #ffd166}
+.verdict small{display:block;font-size:11px;letter-spacing:.1em;margin-top:4px;opacity:.9}
+/* nav */
+nav{display:flex;gap:4px;margin:0 14px calc(10px + env(safe-area-inset-bottom));padding:6px;border-radius:26px;background:#0b0e22dd;backdrop-filter:blur(22px);border:1px solid var(--line2);box-shadow:0 18px 50px #000a,inset 0 1px 0 #ffffff12}
+nav button{flex:1;border:0;background:none;color:var(--mut);font-size:11px;font-weight:700;display:flex;flex-direction:column;align-items:center;gap:3px;padding:9px 4px;border-radius:20px;transition:.25s var(--ease)}
+nav button.on{color:#fff;background:linear-gradient(160deg,#7c5cff55,#22d3ee33);box-shadow:inset 0 1px 0 #ffffff22}nav button.on .i{stroke:#67e8f9;filter:drop-shadow(0 0 6px #22d3ee)}
+/* modals */
+.modal,.sheet{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;padding:18px;background:#02030acc;backdrop-filter:blur(8px);animation:fade .2s}
+@keyframes fade{from{opacity:0}}
+.sheet{z-index:70;align-items:flex-end;padding:0}
+.modal#dlg{z-index:90}.modal#mdTime{z-index:75}
+.mbox{width:100%;max-width:480px;max-height:86vh;display:flex;flex-direction:column;border-radius:28px;background:linear-gradient(170deg,#1a1e40,#0c0f22);border:1px solid var(--line2);box-shadow:0 30px 90px #000d,inset 0 1px 0 #ffffff14;animation:pop .3s var(--ease);overflow:hidden}
+@keyframes pop{from{opacity:0;transform:translateY(22px) scale(.96)}}
+.mh{display:flex;justify-content:space-between;align-items:center;padding:18px 18px 10px;gap:10px}.mh h2{font-size:19px;letter-spacing:-.02em}
+.mb{padding:6px 18px 14px;overflow-y:auto;display:flex;flex-direction:column;gap:12px;scrollbar-width:thin}
+.mf{padding:12px 18px calc(18px);display:flex;gap:10px;border-top:1px solid var(--line)}
+.sheet>div{width:100%;max-width:520px;background:linear-gradient(170deg,#1a1e40,#0c0f22);border-radius:28px 28px 0 0;padding:22px 18px calc(22px + env(safe-area-inset-bottom));border-top:1px solid var(--line2);display:flex;flex-direction:column;gap:12px;animation:up .3s var(--ease)}
+@keyframes up{from{transform:translateY(40px);opacity:0}}
+.tdisp{text-align:center;font-size:52px;font-weight:800;letter-spacing:-.04em;font-variant-numeric:tabular-nums;line-height:1;padding:6px 0 2px;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}.tdisp small{font-size:20px;letter-spacing:0;margin-left:4px}
+.tg{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.tg button,.tq button{border:1px solid var(--line);background:#ffffff0b;color:var(--ink);padding:13px 0;border-radius:14px;font-weight:800;font-size:15px;font-variant-numeric:tabular-nums;transition:.15s}
+.tg button.on,.tq button.on{background:var(--grad);border-color:transparent;box-shadow:0 6px 18px #7c5cff55}.tg button:active{transform:scale(.94)}
+.tq{display:flex;gap:8px;flex-wrap:wrap}.tq button{padding:9px 13px;font-size:13px;border-radius:99px}
+.lab{font-size:11px;color:var(--mut);font-weight:800;letter-spacing:.1em;text-transform:uppercase;margin-bottom:-4px}
+.toast{position:fixed;left:50%;bottom:104px;transform:translateX(-50%);background:#1b2046f2;border:1px solid var(--line2);padding:12px 18px;border-radius:99px;font-size:13px;font-weight:700;z-index:99;max-width:90%;text-align:center;box-shadow:0 14px 40px #000a;backdrop-filter:blur(14px)}.toast button{cursor:pointer}
+.capture-reveal{position:fixed;inset:0;z-index:120;display:grid;place-items:center;padding:24px;background:#02030acc;backdrop-filter:blur(8px);pointer-events:none;animation:revealIn .5s var(--ease)}.capture-reveal.out{animation:revealOut .7s var(--ease) forwards}@keyframes revealIn{from{opacity:0}35%{opacity:1}}@keyframes revealOut{to{opacity:0;transform:scale(1.04)}}.instax{position:relative;width:min(82vw,340px);padding:12px 12px 22px;border:1px solid #5ef2ffbb;border-radius:12px;background:linear-gradient(145deg,#eefaff,#b9d3e0 55%,#d8c9f5);box-shadow:0 0 0 5px #7c5cff33,0 0 36px #22d3ee99,0 28px 80px #000d;color:#11152e;transform:rotate(-1.5deg);overflow:hidden}.instax:before{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,#22d3ee22 0 1px,transparent 1px 4px),linear-gradient(110deg,transparent 20%,#fff8 48%,transparent 62%);mix-blend-mode:multiply}.instax:after{content:"PALMPASS // CAPTURE VERIFIED";display:block;margin-top:10px;font:900 9px/1.2 ui-monospace,Menlo,Consolas,monospace;letter-spacing:.12em;color:#273c78;text-align:center}.instax img{display:block;width:100%;aspect-ratio:4/3;object-fit:cover;border:7px solid #11152e;background:#05060e;box-shadow:inset 0 0 0 1px #5ef2ff;filter:saturate(.9) contrast(1.05)}.instax h2{margin-top:12px;text-align:center;font-size:19px;letter-spacing:-.02em}.instax p{margin-top:2px;text-align:center;font:800 10px/1.4 ui-monospace,Menlo,Consolas,monospace;letter-spacing:.1em;color:#30438a;text-transform:uppercase}
+.foot{text-align:center;color:var(--mut);font-size:12px}
+@media(min-width:700px){header,main,nav,.sync{width:100%;max-width:540px;margin-inline:auto}.sync{margin-top:0}nav{margin-bottom:14px}.cam{aspect-ratio:4/3;max-height:none}}
+@media(max-width:360px){.hero{flex-direction:column}.hl{width:100%}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style></head><body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<symbol id="i-home" viewBox="0 0 24 24"><path d="M3 11l9-8 9 8M5 10v10h5v-6h4v6h5V10"/></symbol>
+<symbol id="i-scan" viewBox="0 0 24 24"><path d="M4 8V5a1 1 0 011-1h3M16 4h3a1 1 0 011 1v3M20 16v3a1 1 0 01-1 1h-3M8 20H5a1 1 0 01-1-1v-3M4 12h16"/></symbol>
+<symbol id="i-list" viewBox="0 0 24 24"><path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/></symbol>
+<symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 00-.1-1.3l2-1.5-2-3.4-2.3.9a7 7 0 00-2.2-1.3L14 3h-4l-.4 2.4a7 7 0 00-2.2 1.3l-2.3-.9-2 3.4 2 1.5a7 7 0 000 2.6l-2 1.5 2 3.4 2.3-.9a7 7 0 002.2 1.3L10 21h4l.4-2.4a7 7 0 002.2-1.3l2.3.9 2-3.4-2-1.5c.1-.4.1-.9.1-1.3z"/></symbol>
+<symbol id="i-palm" viewBox="0 0 24 24"><path d="M8 13V5a1.5 1.5 0 013 0v6M11 10V3.5a1.5 1.5 0 013 0V10M14 10V5a1.5 1.5 0 013 0v8M17 9a1.5 1.5 0 013 0v5a7 7 0 01-7 7h-1a7 7 0 01-5.6-2.8L4 14a1.5 1.5 0 012.4-1.8L8 14"/></symbol>
+<symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6M16 5.2a3.2 3.2 0 010 5.6M18 14.3c1.8.7 3 2.5 3 4.7"/></symbol>
+<symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+<symbol id="i-cloud" viewBox="0 0 24 24"><path d="M7 18a4.5 4.5 0 01-.6-8.96A6 6 0 0118 9.5a4.2 4.2 0 01-.5 8.5H7z"/></symbol>
+<symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
+<symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+<symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v5M14 11v5"/></symbol>
+<symbol id="i-edit" viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16v4zM13.5 6.5l4 4"/></symbol>
+<symbol id="i-down" viewBox="0 0 24 24"><path d="M12 4v11M7.5 11L12 15.5 16.5 11M5 20h14"/></symbol>
+<symbol id="i-up" viewBox="0 0 24 24"><path d="M12 16V5M7.5 9L12 4.5 16.5 9M5 20h14"/></symbol>
+<symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></symbol>
+<symbol id="i-chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></symbol>
+<symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+<symbol id="i-in" viewBox="0 0 24 24"><path d="M10 4H5a1 1 0 00-1 1v14a1 1 0 001 1h5M14 8l4 4-4 4M18 12H9"/></symbol>
+<symbol id="i-out" viewBox="0 0 24 24"><path d="M14 4h5a1 1 0 011 1v14a1 1 0 01-1 1h-5M10 8l-4 4 4 4M6 12h9"/></symbol>
+<symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13 3L5 13.5h6L10 21l8-10.5h-6L13 3z"/></symbol>
+<symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 4l9 16H3L12 4zM12 10v4M12 17.5h.01"/></symbol>
+<symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l7 3v5.5c0 4.5-3 7.8-7 9.5-4-1.7-7-5-7-9.5V6l7-3z"/><path d="M9 12l2.2 2.2L15.5 10"/></symbol>
+<symbol id="i-cal" viewBox="0 0 24 24"><rect x="4" y="5.5" width="16" height="14.5" rx="2.5"/><path d="M4 10h16M8.5 3.5v4M15.5 3.5v4"/></symbol>
+<symbol id="i-sliders" viewBox="0 0 24 24"><path d="M4 7h9M17 7h3M4 12h3M11 12h9M4 17h11M19 17h1"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="17" r="2"/></symbol>
+<symbol id="i-vol" viewBox="0 0 24 24"><path d="M4 9.5v5h3.5L12 18.5v-13L7.5 9.5H4zM15.5 9a4.5 4.5 0 010 6M18 6.5a8 8 0 010 11"/></symbol>
+<symbol id="i-mute" viewBox="0 0 24 24"><path d="M4 9.5v5h3.5L12 18.5v-13L7.5 9.5H4zM16 9.5l5 5M21 9.5l-5 5"/></symbol>
+<symbol id="i-link" viewBox="0 0 24 24"><path d="M10 14a4 4 0 005.7 0l3-3a4 4 0 00-5.7-5.7l-1 1M14 10a4 4 0 00-5.7 0l-3 3a4 4 0 005.7 5.7l1-1"/></symbol>
+</defs></svg>
+
+<header><div class="brand"><div class="logo"><svg class="i"><use href="#i-palm"/></svg></div><div><b>PalmPass</b><small>SMART ATTENDANCE</small></div></div><div id="pill" class="pill"><i></i><span>Local</span></div></header>
+<main>
+
+<section id="home" class="tab on">
+  <div class="greet"><small id="hDate"></small><h1 id="hGreet">Welcome</h1></div>
+  <div class="hero">
+    <div class="ring"><svg viewBox="0 0 124 124"><circle class="rt" cx="62" cy="62" r="52"/><circle id="hRing" class="rp" cx="62" cy="62" r="52"/></svg><div class="rc"><big id="hPres">0</big><span id="hOf">of 0 present</span></div></div>
+    <div class="hl"><div><i style="background:#fcd34d"></i><span>Late</span><b id="hLate">0</b></div><div><i style="background:#6ee7b7"></i><span>Timed out</span><b id="hOut">0</b></div><div><i style="background:#fda4af"></i><span>Absent</span><b id="hAbs">0</b></div></div>
+  </div>
+  <button class="card sched" data-go="set" aria-label="Open work schedule settings"><div class="sc"><small>Time-in</small><b id="hSIn">8:30 AM</b></div><div class="ar"></div><div class="sc" style="text-align:right"><small>Time-out</small><b id="hSOut">5:00 PM</b></div><svg class="i"><use href="#i-chev"/></svg></button>
+  <div class="row"><button class="btn" data-go="scan"><svg class="i"><use href="#i-scan"/></svg>Start scanning</button><button class="btn gh" data-enroll><svg class="i"><use href="#i-plus"/></svg>Register palm</button></div>
+  <div class="g2">
+    <div class="card tile"><div class="ti"><svg class="i"><use href="#i-clock"/></svg></div><span>Last check-in</span><b id="hLast">—</b></div>
+    <button class="card tile" data-open="mdChk"><div class="ti" style="background:#7c5cff26;color:#c4b5fd"><svg class="i"><use href="#i-list"/></svg></div><span>Today</span><b>Check-ins</b></button>
+  </div>
+</section>
+
+<section id="scan" class="tab">
+  <div class="seg"><button id="mId" class="on"><svg class="i"><use href="#i-scan"/></svg>Check in</button><button id="mEn"><svg class="i"><use href="#i-plus"/></svg>Register palm</button></div>
+  <div class="seg" id="actSeg"><button id="aAuto" class="on"><svg class="i"><use href="#i-bolt"/></svg>Auto</button><button id="aIn"><svg class="i"><use href="#i-in"/></svg>Time in</button><button id="aOut"><svg class="i"><use href="#i-out"/></svg>Time out</button></div>
+  <div class="cam" id="cam"><video id="vid" playsinline muted></video><canvas id="cv"></canvas><div class="guide"></div><div class="scanline"></div><div id="hudL" class="hud"></div><div id="hudR" class="hud"></div><div id="verdict" class="verdict hide"></div><div id="hint" class="hint">Starting camera…</div></div>
+  <div class="row"><select id="facing" aria-label="Camera"><option value="user">Front camera</option><option value="environment">Rear camera</option></select><button class="btn gh" id="restart"><svg class="i"><use href="#i-scan"/></svg>Restart</button><button class="btn gh" id="vBtn" aria-label="Voice announcements" style="flex:none;width:58px;padding:15px 0"></button></div>
+  <p class="mut" id="scanNote" style="text-align:center">One scan is enough. Show your palm inside the frame with the lines visible.</p>
+</section>
+
+<section id="rec" class="tab">
+  <div class="greet"><small>ATTENDANCE</small><h1>Records</h1></div>
+  <div class="g3"><div class="card mini g"><b id="rcP">0</b><span>PRESENT</span></div><div class="card mini w"><b id="rcL">0</b><span>LATE</span></div><div class="card mini r"><b id="rcA">0</b><span>ABSENT</span></div></div>
+  <button class="big" data-open="mdChk"><div class="bi"><svg class="i"><use href="#i-list"/></svg></div><div><b>Check-ins</b><span>Browse by date, filter, export CSV</span></div><div class="cnt" id="oChkN">0</div><svg class="i"><use href="#i-chev"/></svg></button>
+  <button class="big alt" data-open="mdPalms"><div class="bi"><svg class="i"><use href="#i-users"/></svg></div><div><b>Registered palms</b><span>Rename or remove people</span></div><div class="cnt" id="oPalN">0</div><svg class="i"><use href="#i-chev"/></svg></button>
+</section>
+
+<section id="set" class="tab">
+  <div class="greet"><small>PREFERENCES</small><h1>Settings</h1></div>
+  <div id="sync" class="sync hide"></div>
+
+  <div class="card" id="gcard"><div class="ch"><div class="ci"><svg class="i"><use href="#i-cloud"/></svg></div><h2>GitHub sync</h2><span id="gStat" class="tag o">Not connected</span></div>
+    <p class="mut" id="gInfo"></p>
+    <label class="f">Owner (username)</label><input id="gO" name="pp-owner" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="yourname">
+    <label class="f">Repository</label><input id="gR" name="pp-repo" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="palm-attendance">
+    <label class="f">Branch</label><input id="gB" name="pp-branch" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="main">
+    <label class="f">Access token (Contents: read &amp; write)</label><input id="gT" name="pp-token" type="password" autocomplete="new-password" placeholder="github_pat_…">
+    <div class="row" style="margin-top:14px"><button class="btn" id="gSave"><svg class="i"><use href="#i-link"/></svg>Save &amp; connect</button><button class="btn gh" id="gSync"><svg class="i"><use href="#i-cloud"/></svg>Sync now</button></div>
+    <button class="btn rd hide" id="gOff" style="margin-top:10px">Disconnect (keeps owner &amp; repo filled in)</button>
+  </div>
+
+  <div class="card"><div class="ch"><div class="ci"><svg class="i"><use href="#i-clock"/></svg></div><h2>Work schedule</h2></div>
+    <p class="mut">Tap a time to change it. Time-ins after the required time-in are marked late.</p>
+    <div class="g2" style="margin-top:12px"><button class="tbtn" data-time="sIn"><small><svg class="i"><use href="#i-in"/></svg>Required time-in</small><b id="tIn">8:30 AM</b></button><button class="tbtn" data-time="sOut"><small><svg class="i"><use href="#i-out"/></svg>Required time-out</small><b id="tOut">5:00 PM</b></button></div>
+    <label class="f">Late grace period</label>
+    <div class="chips" id="grChips"><button data-grace="0">None</button><button data-grace="5">5 min</button><button data-grace="10">10 min</button><button data-grace="15">15 min</button><button data-grace="30">30 min</button></div>
+    <label class="f">Time-out before the required time</label>
+    <div class="chips" id="erChips"><button data-early="flag">Allow &amp; mark early</button><button data-early="block">Block it</button></div>
+  </div>
+
+  <div class="card"><div class="ch"><div class="ci"><svg class="i"><use href="#i-bolt"/></svg></div><h2>Voice announcements</h2></div>
+    <p class="mut">British voice: “Good morning / Good evening, name” · “You're late, name” · “Goodbye, name”.</p>
+    <div class="chips" id="vChips" style="margin-top:12px"><button data-voice="1">On</button><button data-voice="0">Off</button></div>
+    <p class="mut" id="vInfo" style="margin-top:10px;font-size:12px"></p>
+    <button class="btn gh" id="vTest" style="margin-top:12px"><svg class="i"><use href="#i-bolt"/></svg>Test voice</button>
+  </div>
+
+  <div class="card"><div class="ch"><div class="ci"><svg class="i"><use href="#i-sliders"/></svg></div><h2>Scan sensitivity</h2></div>
+    <label class="f" style="margin-top:6px">Match tolerance · <span id="thV" style="text-transform:none;letter-spacing:0"></span></label><p class="mut">Lower = stricter. Higher = more forgiving of tilted hands.</p><input type="range" id="thr" min="0.015" max="0.12" step="0.001">
+    <label class="f">Registration palm-line strictness · <span id="ptRegV" style="text-transform:none;letter-spacing:0"></span></label><p class="mut">Used while registering. Higher captures more detail for a reliable identity.</p><input type="range" id="ptReg" min="0.6" max="0.85" step="0.005">
+    <label class="f">Check-in palm-line strictness · <span id="ptChkV" style="text-transform:none;letter-spacing:0"></span></label><p class="mut">Used during attendance scans. The default is more forgiving for everyday use.</p><input type="range" id="ptChk" min="0.6" max="0.85" step="0.005">
+  </div>
+
+  <div class="card"><div class="ch"><div class="ci"><svg class="i"><use href="#i-shield"/></svg></div><h2>Backup</h2></div><p class="mut">Keep a copy of all palms, records and your schedule. Restoring can be undone for 9 seconds.</p><div class="row" style="margin-top:12px"><button class="btn gh" id="bkD"><svg class="i"><use href="#i-down"/></svg>Download</button><button class="btn gh" id="bkR"><svg class="i"><use href="#i-up"/></svg>Restore</button></div><input type="file" id="bkF" accept=".json,application/json" class="hide"></div>
+  <p class="foot">PalmPass · palm lines + hand shape</p>
+  <p class="foot" style="margin-top:-8px">Palm matching is convenient, not a certified biometric. Register people only with their consent.</p>
+</section>
+</main>
+
+<nav id="nav">
+<button data-go="home" class="on"><svg class="i"><use href="#i-home"/></svg>Home</button>
+<button data-go="scan"><svg class="i"><use href="#i-scan"/></svg>Scan</button>
+<button data-go="rec"><svg class="i"><use href="#i-list"/></svg>Records</button>
+<button data-go="set"><svg class="i"><use href="#i-gear"/></svg>Settings</button>
+</nav>
+
+<!-- Check-ins modal -->
+<div id="mdChk" class="modal hide"><div class="mbox">
+  <div class="mh"><h2>Check-ins</h2><button class="ib" data-close aria-label="Close"><svg class="i"><use href="#i-x"/></svg></button></div>
+  <div class="mb">
+    <select id="rDate" aria-label="Filter by date"></select>
+    <div class="seg"><button id="rP" class="on">Present</button><button id="rL">Late</button><button id="rO">No out</button><button id="rA">Absent</button></div>
+    <div class="search"><svg class="i"><use href="#i-search"/></svg><input id="rQ" placeholder="Search name"></div>
+    <div id="rList"></div>
+  </div>
+  <div class="mf"><button class="btn gh" id="csv"><svg class="i"><use href="#i-down"/></svg>Export CSV</button><button class="btn rd" id="clr"><svg class="i"><use href="#i-trash"/></svg>Clear day</button></div>
+</div></div>
+
+<!-- Registered palms modal -->
+<div id="mdPalms" class="modal hide"><div class="mbox">
+  <div class="mh"><h2>Registered palms</h2><button class="ib" data-close aria-label="Close"><svg class="i"><use href="#i-x"/></svg></button></div>
+  <div class="mb">
+    <div class="search"><svg class="i"><use href="#i-search"/></svg><input id="pQ" placeholder="Search name"></div>
+    <div id="pList"></div>
+  </div>
+  <div class="mf"><button class="btn" data-enroll><svg class="i"><use href="#i-plus"/></svg>Register new palm</button></div>
+</div></div>
+
+<!-- Tap-only time picker -->
+<div id="mdTime" class="modal hide"><div class="mbox">
+  <div class="mh"><h2 id="tpT">Required time-in</h2><button class="ib" id="tpX" aria-label="Close"><svg class="i"><use href="#i-x"/></svg></button></div>
+  <div class="mb">
+    <div class="tdisp" id="tpD">8:30 <small>AM</small></div>
+    <div class="lab">Quick picks</div><div class="tq" id="tpQ"></div>
+    <div class="lab">Hour</div><div class="tg" id="tpH"></div>
+    <div class="lab">Minute</div><div class="tg" id="tpM"></div>
+    <div class="lab">AM / PM</div><div class="tg" id="tpA" style="grid-template-columns:1fr 1fr"></div>
+  </div>
+  <div class="mf"><button class="btn gh" id="tpC">Cancel</button><button class="btn" id="tpOK"><svg class="i"><use href="#i-check"/></svg>Set time</button></div>
+</div></div>
+
+<!-- Name palm -->
+<div id="sheet" class="sheet hide"><div><h2>Name this palm</h2><p class="mut">Saved for future check-ins.</p><input id="nm" maxlength="60" placeholder="Firstname Lastname"><div class="row"><button class="btn gh" id="nmX">Cancel</button><button class="btn" id="nmOK"><svg class="i"><use href="#i-check"/></svg>Save palm</button></div></div></div>
+
+<!-- Palm snapshot preview -->
+<div id="mdPalm" class="modal hide"><div class="mbox"><div class="mh"><h2 id="palmShotTitle">Palm snapshot</h2><button class="ib" data-close aria-label="Close"><svg class="i"><use href="#i-x"/></svg></button></div><div class="mb"><img id="palmShot" class="palm-shot hide" alt="Saved palm snapshot"><div id="palmShotEmpty" class="shot-empty hide">No palm snapshot was saved for this registration.</div><p class="mut" id="palmShotInfo">Captured at registration to help verify that the palm was centered, clear, and readable.</p></div></div></div>
+
+<!-- Confirm / prompt dialog -->
+<div id="dlg" class="modal hide"><div class="mbox"><div class="mb" style="padding-top:20px"><h2 id="dT"></h2><p class="mut" id="dM" style="font-size:14px"></p><input id="dI" class="hide" maxlength="60"></div><div class="mf"><button class="btn gh" id="dN">Cancel</button><button class="btn" id="dY">OK</button></div></div></div>
+
+<div id="toast" class="toast hide"></div>
+<div id="captureReveal" class="capture-reveal hide" aria-live="polite"><div class="instax"><img id="captureRevealImg" alt="Newly registered palm"><h2 id="captureRevealName"></h2><p>Check this on the Records tab</p></div></div>
+
+<script type="module">
+// Load optional device/model libraries lazily. A missing plugin or offline CDN must
+// never prevent the main app (especially tab navigation) from starting.
+let FilesetResolver=null, HandLandmarker=null;
+let ttsBridgeReady=false;
+import("./vendor/tts-bridge.js").then(()=>{ttsBridgeReady=true;}).catch(err=>{
+  console.warn("Native TTS bridge unavailable; browser speech will be used when possible.",err);
+});
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const L=k=>{try{return JSON.parse(localStorage.getItem(k))}catch{return null}},S=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
+const pad=n=>String(n).padStart(2,"0"),day=d=>{d=new Date(d);return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())};
+const tm=d=>new Date(d).toLocaleTimeString([],{hour:"numeric",minute:"2-digit",second:"2-digit"}),fd=d=>new Date(d).toLocaleDateString([],{weekday:"short",month:"short",day:"numeric",year:"numeric"});
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const savedCfg=L("cfg4")||{};let cfg=Object.assign({owner:"",repo:"",branch:"main",token:"",thr:.04,pt:.67,ptReg:.760,ptChk:.670,sIn:"08:30",sOut:"17:00",grace:0,early:"block",facing:"user",voice:true},savedCfg);if(!Number.isFinite(savedCfg.ptReg))cfg.ptReg=.760;if(!Number.isFinite(savedCfg.ptChk))cfg.ptChk=Number.isFinite(savedCfg.pt)?cfg.pt:.670;if(savedCfg.early==="flag"&&!savedCfg.earlyPolicySet){cfg.early="block";cfg.earlyPolicySet=true;S("cfg4",cfg)}cfg.pt=cfg.ptChk;let palms=L("palms")||[],logs=L("logs")||[];
+let ib=[],act="auto",tab="home",mode="id",rMode="p",lm=null,stream=null,timer=null,busy=false,streak=0,last=null,enr=null,pending=L("pending")||{},wake=null,dirty=!!L("dirty"),tp=null,dRes=null,dIn=false;
+const palmStrictness=()=>mode=="en"?cfg.ptReg:cfg.ptChk;
+
+/* ---------- toast & status ---------- */
+let tt;function toast(m){const t=$("#toast");t.textContent=m;t.classList.remove("hide");clearTimeout(tt);tt=setTimeout(()=>t.classList.add("hide"),2600)}
+let revealTimer;function showPalmReveal(name,src){if(!src)return;const r=$("#captureReveal"),img=$("#captureRevealImg");clearTimeout(revealTimer);img.src=src;img.alt="Newly registered palm for "+name;$("#captureRevealName").textContent=name;r.classList.remove("hide","out");void r.offsetWidth;revealTimer=setTimeout(()=>{r.classList.add("out");setTimeout(()=>r.classList.add("hide"),700)},3600)}
+function pill(c,t){const p=$("#pill");p.className="pill "+c;p.lastChild.textContent=t}
+const before=()=>({p:JSON.stringify(palms),l:JSON.stringify(logs)});let uS=null;
+function undoable(msg,B){uS=B;const t=$("#toast");t.innerHTML=esc(msg)+' <button id="undoB" style="margin-left:10px;border:0;background:var(--grad);color:#fff;font-weight:700;border-radius:99px;padding:5px 14px">Undo</button>';t.classList.remove("hide");clearTimeout(tt);tt=setTimeout(()=>{t.classList.add("hide");uS=null},9000);
+ $("#undoB").onclick=()=>{if(!uS)return;palms=JSON.parse(uS.p);logs=JSON.parse(uS.l);uS=null;persist("p");persist("a");render();toast("Restored. Nothing was lost")}}
+const ready=()=>cfg.owner&&cfg.repo&&cfg.token;
+
+/* ---------- GitHub JSON storage ---------- */
+const sha={};let q=Promise.resolve();
+const gh=(p,o={})=>fetch(`https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/${p}`+(o.method?"":`?ref=${cfg.branch}&_=${Date.now()}`),{...o,headers:{Authorization:"Bearer "+cfg.token,Accept:"application/vnd.github+json"}});
+async function pull(p){const r=await gh(p);if(r.status==404){sha[p]=null;return null}if(!r.ok)throw new Error(r.status==401?"Invalid token":r.status==403?"Token lacks access":"Repo/branch not found");const j=await r.json();sha[p]=j.sha;return JSON.parse(decodeURIComponent(escape(atob(j.content.replace(/\s/g,"")))))}
+async function push(p,data,retry=1,ka=false){const body={message:"PalmPass: update "+p,branch:cfg.branch,content:btoa(unescape(encodeURIComponent(JSON.stringify(data,null,1))))};if(sha[p])body.sha=sha[p];const r=await gh(p,{method:"PUT",body:JSON.stringify(body),keepalive:ka});if((r.status==409||r.status==422)&&retry){await pull(p);return push(p,data,0,ka)}if(!r.ok)throw new Error("Save failed ("+r.status+")");sha[p]=(await r.json()).content.sha}
+const unsynced=()=>ready()?Object.keys(pending).length>0:dirty;
+function setDirty(v){dirty=v;S("dirty",v);bar()}
+function bar(){const b=$("#sync");if(!b)return;const n=Object.keys(pending).length;let h="";
+ if(ready()&&n)h=`${ic("cloud")}<span>Changes not synced yet</span><button data-act="sync">Sync now</button>`;
+ else if(!ready()&&dirty)h=`${ic("alert")}<span>Saved on this device only</span><button data-act="backup">Back up</button><button data-act="conn">Connect</button>`;
+ b.innerHTML=h;b.classList.toggle("hide",!h)}
+function persist(k){S("palms",palms);S("logs",logs);if(!ready()){setDirty(true);pill("","Local only");return}pending[k]=1;S("pending",pending);bar();flush()}
+function flush(){q=q.then(async()=>{if(!ready()){bar();return}pill("sy","Syncing");try{for(const k of Object.keys(pending)){await push(k=="p"?"data/palms.json":"data/attendance.json",k=="p"?{palms}:{logs});delete pending[k]}S("pending",pending);pill("ok","Synced");dirty=false;S("dirty",false)}catch(e){pill("bad","Offline");toast(e.message)}bar()})}
+function beacon(){for(const k of Object.keys(pending))push(k=="p"?"data/palms.json":"data/attendance.json",k=="p"?{palms}:{logs},0,true).catch(()=>{})}
+async function load(){if(!ready()){pill("","Local only");return}pill("sy","Syncing");try{const[a,b]=await Promise.all([pull("data/palms.json"),pull("data/attendance.json")]);if(a&&!pending.p)palms=a.palms||[];if(b&&!pending.a)logs=b.logs||[];S("palms",palms);S("logs",logs);pill("ok","Synced");if(Object.keys(pending).length||(!a&&palms.length)||(!b&&logs.length)){if(!a)pending.p=1;if(!b)pending.a=1;flush()}else if(!a||!b){pending.p=pending.a=1;flush()}}catch(e){pill("bad","Offline");toast(e.message);render();return false}render();return true}
+
+/* ---------- palm engine (hand geometry) ---------- */
+const sub=(a,b)=>[a[0]-b[0],a[1]-b[1],a[2]-b[2]],dot=(a,b)=>a[0]*b[0]+a[1]*b[1]+a[2]*b[2],nrm=v=>{const n=Math.hypot(...v)||1;return v.map(x=>x/n)},crs=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];
+function desc(P){const D=(a,b)=>Math.hypot(...sub(P[a],P[b])),pm=[[0,5],[0,9],[0,13],[0,17],[5,9],[9,13],[13,17],[5,17]],sc=pm.slice(0,7).reduce((t,[a,b])=>t+D(a,b),0)/7;
+ if(!isFinite(sc)||!(sc>0))throw new Error("Hand unclear");const B=[...pm,[0,1],[1,2],[2,3],[3,4],[5,6],[6,7],[7,8],[9,10],[10,11],[11,12],[13,14],[14,15],[15,16],[17,18],[18,19],[19,20]];
+ return B.map(([a,b])=>D(a,b)/sc)}
+function fullOpen(P){const D=(a,b)=>Math.hypot(...sub(P[a],P[b]));
+ /* only reject a closed fist (fingertips folded back toward the wrist) */
+ const curled=[[5,8],[9,12],[13,16],[17,20]].filter(([m,t])=>D(t,0)/D(m,0)<1.2).length;
+ if(curled>=3)return"Palm is closed. Open your hand so the palm shows";
+ /* palm must face the camera so the lines are visible (relaxed) */
+ const n=nrm(crs(sub(P[5],P[0]),sub(P[17],P[0])));if(Math.abs(n[2])<.55)return"Face your palm toward the camera";return null}
+const meanVec=a=>a[0].map((_,i)=>a.reduce((t,v)=>t+v[i],0)/a.length);
+function open(P){const d=(a,b)=>Math.hypot(P[a][0]-P[b][0],P[a][1]-P[b][1]);return[[5,6,8],[9,10,12],[13,14,16],[17,18,20]].filter(([m,p,t])=>d(t,0)>d(p,0)*1.08&&d(p,0)>d(m,0)*.75).length>=4}
+/* ---------- palm-line engine (oriented line code, competitive-code style) ---------- */
+const RC=document.createElement("canvas");RC.width=RC.height=64;const rx=RC.getContext("2d",{willReadFrequently:true});
+const KER=(()=>{const ks=[];for(let o=0;o<6;o++){const t=o*Math.PI/6,c=Math.cos(t),n=Math.sin(t),k=[];let sm=0;for(let y=-5;y<=5;y++)for(let x=-5;x<=5;x++){const u=x*c+y*n,v=-x*n+y*c,g=(1-u*u/2.56)*Math.exp(-u*u/5.12-v*v/24);k.push(g);sm+=g}const m=sm/k.length;ks.push(k.map(g=>g-m))}return ks})();
+function roi(h,vw,vh){const p=i=>[h[i].x*vw,h[i].y*vh],w=p(0),m=p(9),a=p(5),b=p(17);let ux=m[0]-w[0],uy=m[1]-w[1];const l=Math.hypot(ux,uy)||1;ux/=l;uy/=l;const r=[-uy,ux],side=Math.hypot(a[0]-b[0],a[1]-b[1])*.95,k=side/64,cx=(w[0]+m[0])/2,cy=(w[1]+m[1])/2;
+ return{side,A:[r[0]*k,r[1]*k],C:[-ux*k,-uy*k],O:[cx-r[0]*side/2+ux*side/2,cy-r[1]*side/2+uy*side/2]}}
+function box(a,N,r){const t=new Float32Array(N*N),o=new Float32Array(N*N);for(let y=0;y<N;y++)for(let x=0;x<N;x++){let s=0,n=0;for(let k=-r;k<=r;k++){const xx=x+k;if(xx>=0&&xx<N){s+=a[y*N+xx];n++}}t[y*N+x]=s/n}for(let y=0;y<N;y++)for(let x=0;x<N;x++){let s=0,n=0;for(let k=-r;k<=r;k++){const yy=y+k;if(yy>=0&&yy<N){s+=t[yy*N+x];n++}}o[y*N+x]=s/n}return o}
+function palmCode(R){const{O,A,C}=R,det=A[0]*C[1]-A[1]*C[0];if(Math.abs(det)<1e-6)return null;const a=C[1]/det,b=-A[1]/det,c=-C[0]/det,d=A[0]/det;rx.setTransform(1,0,0,1,0,0);rx.clearRect(0,0,64,64);rx.setTransform(a,b,c,d,-(a*O[0]+c*O[1]),-(b*O[0]+d*O[1]));rx.drawImage(vid,0,0);
+ const im=rx.getImageData(0,0,64,64).data,N=64,G=new Float32Array(N*N);for(let i=0;i<N*N;i++)G[i]=.299*im[4*i]+.587*im[4*i+1]+.114*im[4*i+2];lastLum=G.reduce((a,b)=>a+b,0)/G.length;
+ const bl=box(G,N,7),H=new Float32Array(N*N);let q=0;for(let i=0;i<N*N;i++){H[i]=G[i]-bl[i];q+=H[i]*H[i]}const sd=Math.sqrt(q/(N*N));if(sd<3)return null;for(let i=0;i<N*N;i++)H[i]/=sd;
+ const ori=new Uint8Array(1024),st=new Float32Array(1024);for(let cy=0;cy<32;cy++)for(let cx=0;cx<32;cx++){let bo=0,bv=0;for(let o=0;o<6;o++){const k=KER[o];let r=0,j=0;for(let y=-5;y<=5;y++){const yy=Math.min(N-1,Math.max(0,cy*2+y));for(let x=-5;x<=5;x++){r+=k[j++]*H[yy*N+Math.min(N-1,Math.max(0,cx*2+x))]}}if(r<bv){bv=r;bo=o}}ori[cy*32+cx]=bo;st[cy*32+cx]=-bv}
+ const thr=[...st].sort((x,y)=>x-y)[Math.floor(1024*.5)];for(let i=0;i<1024;i++){const x=i%32,y=i>>5;if(st[i]<thr||x<3||x>28||y<3||y>28)ori[i]=6}
+ return{u8:ori,s:Array.from(ori).join("")}}
+function psim(A,B){let best=0;for(let dy=-2;dy<=2;dy++)for(let dx=-2;dx<=2;dx++){let n=0,d=0;for(let y=Math.max(0,-dy);y<32-Math.max(0,dy);y++)for(let x=Math.max(0,-dx);x<32-Math.max(0,dx);x++){const p=A[y*32+x],q=B[(y+dy)*32+x+dx];if(p>5||q>5)continue;const e=Math.abs(p-q);d+=e>3?6-e:e;n++}if(n>=100){const v=1-d/(3*n);if(v>best)best=v}}return best}
+const CC=new WeakMap(),codes=p=>{let c=CC.get(p);if(!c){c=p.pc.map(t=>Uint8Array.from(t,x=>+x));CC.set(p,c)}return c};
+function matchAll(fr){const gm=meanVec(fr.map(f=>f.d)),g=sigma(gm.length),R=[],use=fr.filter((_,i)=>i%2==0);for(const p of palms){if(!p.pc||p.s[0].length!=gm.length)continue;let gd=99;for(const x of p.s)gd=Math.min(gd,dist(x,gm,g)[0]);const cs=codes(p);let ps=0;for(const f of use)ps+=Math.max(...cs.map(c=>psim(c,f.c)));R.push({p,gd,ps:ps/use.length})}return R}
+function decide(R){R.sort((a,b)=>b.ps-a.ps);const b=R[0],s2=R[1]?R[1].ps:0,gm=Math.min(...R.map(r=>r.gd));return{b,ok:b.ps>=palmStrictness()&&b.ps-s2>=.04&&b.gd<=lim()*1.3&&b.gd<=gm*1.35+.15}}
+const rd=v=>v.map(x=>+x.toFixed(4));
+const dist=(a,b,g)=>{let s=0,m=0;for(let i=0;i<a.length;i++){const e=Math.abs(a[i]-b[i])/(g?g[i]:.02);s+=e*e;if(e>m)m=e}return[Math.sqrt(s/a.length),m]};
+function sigma(len){const v=new Array(len).fill(0);let dof=0;for(const p of palms){if(p.s[0].length!=len)continue;const F=p.s.slice(0,3),mu=meanVec(F);for(const x of F)for(let i=0;i<len;i++)v[i]+=(x[i]-mu[i])**2;dof+=F.length-1}return v.map(t=>Math.max(.008,Math.sqrt((t+4e-4*5)/(dof+5))))}
+function match(d){const g=sigma(d.length);let best=null,d1=99,m1=99,d2=99;for(const p of palms){if(p.s[0].length!=d.length)continue;let b=99,bm=99;for(const x of p.s){const[r,m]=dist(x,d,g);if(r<b){b=r;bm=m}}if(b<d1){d2=d1;d1=b;m1=bm;best=p}else if(b<d2)d2=b}return{p:best,d:d1,m:m1,d2,gap:d2-d1}}
+const lim=()=>cfg.thr*40,ok=m=>m.p&&m.d<=lim()&&m.m<=lim()*2.2&&m.d2>=m.d*1.3,conf=m=>Math.max(0,100-100*m.d/(lim()*2)).toFixed(1);
+async function model(){if(lm)return lm;
+ if(!FilesetResolver||!HandLandmarker){
+  const mp=await import("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/vision_bundle.mjs");
+  FilesetResolver=mp.FilesetResolver;HandLandmarker=mp.HandLandmarker;
+ }
+ const fs=await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm");const o=d=>({baseOptions:{modelAssetPath:"https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task",delegate:d},runningMode:"VIDEO",numHands:1,minHandDetectionConfidence:.5,minHandPresenceConfidence:.5,minTrackingConfidence:.5});try{lm=await HandLandmarker.createFromOptions(fs,o("GPU"))}catch{lm=await HandLandmarker.createFromOptions(fs,o("CPU"))}return lm}
+
+/* ---------- camera & scan loop ---------- */
+const vid=$("#vid"),cv=$("#cv"),hint=(t,c="")=>{const h=$("#hint");h.textContent=t;h.className="hint "+c};
+async function startCam(){stopCam();hint("Starting camera…");try{const f=$("#facing").value;stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:f},width:{ideal:960},height:{ideal:720}},audio:false});vid.srcObject=stream;await vid.play();try{wake=await navigator.wakeLock.request("screen")}catch{}const m=f=="user"?"scaleX(-1)":"";vid.style.transform=cv.style.transform=m;hint("Loading palm engine…");await model();if(mode=="en"){enr={phase:"closed",closedFrames:0,buf:[],w:0,pd:null};say("Show your closed palm to the camera")}hint(mode=="en"?"Show your closed palm to the camera":"Show your palm to the camera");timer=setInterval(tick,120)}catch(e){hint(e.name=="NotAllowedError"?"Camera blocked. Allow camera access in browser settings.":"Camera error: "+e.message,"warn")}}
+function stopCam(){clearInterval(timer);timer=null;try{wake&&wake.release()}catch{}wake=null;if(stream)stream.getTracks().forEach(t=>t.stop());stream=null}
+const BONES=[[0,1],[1,2],[2,3],[3,4],[0,5],[5,6],[6,7],[7,8],[5,9],[9,10],[10,11],[11,12],[9,13],[13,14],[14,15],[15,16],[13,17],[17,18],[18,19],[19,20],[0,17]];
+function draw(h,col,R){const c=cv.getContext("2d");cv.width=vid.videoWidth||480;cv.height=vid.videoHeight||640;c.clearRect(0,0,cv.width,cv.height);if(!h)return;if(R){const{O,A,C}=R;c.save();c.strokeStyle=col;c.lineWidth=2;c.setLineDash([6,4]);c.beginPath();c.moveTo(O[0],O[1]);c.lineTo(O[0]+A[0]*64,O[1]+A[1]*64);c.lineTo(O[0]+(A[0]+C[0])*64,O[1]+(A[1]+C[1])*64);c.lineTo(O[0]+C[0]*64,O[1]+C[1]*64);c.closePath();c.stroke();c.restore()}const X=p=>p.x*cv.width,Y=p=>p.y*cv.height;c.strokeStyle=col;c.fillStyle=col;c.lineWidth=2;c.shadowColor=col;c.shadowBlur=10;c.beginPath();for(const[a,b]of BONES){c.moveTo(X(h[a]),Y(h[a]));c.lineTo(X(h[b]),Y(h[b]))}c.stroke();h.forEach((p,i)=>{c.beginPath();c.arc(X(p),Y(p),[4,8,12,16,20].includes(i)?7:3.5,0,7);[4,8,12,16,20].includes(i)?c.stroke():c.fill()})}
+function capturePalm(h){const w=vid.videoWidth||480,hg=vid.videoHeight||640,xs=h.map(p=>p.x*w),ys=h.map(p=>p.y*hg),pad=Math.max(28,Math.round(Math.max(...xs)-Math.min(...xs))*.16);let x0=Math.min(...xs)-pad,y0=Math.min(...ys)-pad,x1=Math.max(...xs)+pad,y1=Math.max(...ys)+pad,bw=x1-x0,bh=y1-y0,cx=(x0+x1)/2,cy=(y0+y1)/2,target=4/3;if(bw/bh<target)bw=bh*target;else bh=bw/target;let x=Math.max(0,Math.min(w-bw,cx-bw/2)),y=Math.max(0,Math.min(hg-bh,cy-bh/2)),right=Math.min(w,x+bw),bottom=Math.min(hg,y+bh);x=Math.max(0,right-bw);y=Math.max(0,bottom-bh);const out=document.createElement("canvas"),max=520,scale=Math.min(1,max/(right-x),max/(bottom-y));out.width=Math.max(1,Math.round((right-x)*scale));out.height=Math.max(1,Math.round((bottom-y)*scale));out.getContext("2d").drawImage(vid,x,y,right-x,bottom-y,0,0,out.width,out.height);return out.toDataURL("image/jpeg",.86)}
+const hud=(l,r)=>{$("#hudL").textContent=l;$("#hudR").textContent=r||""};
+function verdict(t,c,sub=""){const v=$("#verdict");v.innerHTML=esc(t)+(sub?"<small>"+esc(sub)+"</small>":"");v.className="verdict "+c;clearTimeout(verdict.t);verdict.t=setTimeout(()=>v.className="verdict hide",1800)}
+let lastLum=128,ts=0;function tick(){if(busy||!lm||vid.readyState<2)return;let r;ts=Math.max(performance.now(),ts+1);try{r=lm.detectForVideo(vid,ts)}catch{return}
+ const h=r.landmarks&&r.landmarks[0],cam=$("#cam"),H=`PALMPASS//BIOSCAN\nMODE ${mode=="en"?"ENROLL":"TIME "+act.toUpperCase()}\nDB ${palms.length} PALMS\nPTS ${h?21:0}/21`;cam.classList.remove("lock");
+ if(!h){draw(null);streak=0;enr=null;ib=[];hud(H,"NO TARGET");return hint(mode=="en"?"Show your closed palm to the camera":"Show your palm to the camera")}
+ const vw=vid.videoWidth,vh=vid.videoHeight,W=r.worldLandmarks&&r.worldLandmarks[0],P=W?W.map(p=>[p.x,p.y,p.z]):h.map(p=>[p.x*vw,p.y*vh,(p.z||0)*vw]);
+ if(!h.every(p=>p.x>.03&&p.x<.97&&p.y>.03&&p.y<.97)){draw(h,"#ffd166");streak=0;enr=null;ib=[];hud(H,"HAND CROPPED");return hint("Finger or palm is cut off. Keep your whole hand inside the view","warn")}
+ let d;try{d=desc(P)}catch(e){draw(h,"#ffd166");return hint(e.message,"warn")}{const why=fullOpen(P),isClosed=why&&why.startsWith("Palm is closed");if(why&&!isClosed){draw(h,"#ffd166");enr=null;ib=[];streak=0;hud(H,"TURN PALM");return hint(why,"warn")}if(mode=="en"&&isClosed){draw(h,"#ffd166");enrollGuide(h,H);return}if(mode=="en"&&enr&&enr.phase=="closed"){draw(h,"#ffd166");return hint("Put your closed palm at the center","warn")}}const R=roi(h,vw,vh);{const m=.02,xs=[0,64],bad=[[0,0],[64,0],[0,64],[64,64]].some(([i,j])=>{const x=R.O[0]+R.A[0]*i+R.C[0]*j,y=R.O[1]+R.A[1]*i+R.C[1]*j;return x<vw*m||x>vw*(1-m)||y<vh*m||y>vh*(1-m)});if(bad){draw(h,"#ffd166",R);streak=0;enr=null;ib=[];hud(H,"PALM CROPPED");return hint("Palm is cut off. Keep the whole palm inside the view","warn")}}if(R.side<90){draw(h,"#ffd166",R);hud(H,"TOO FAR");return hint("Move closer. Palm must fill the frame","warn")}
+ const pc=palmCode(R);if(!pc){draw(h,"#ffd166",R);hud(H,"LINES UNCLEAR");enr=null;ib=[];return hint(lastLum<70?"Too dark. Add more light":lastLum>225?"Too bright. Reduce glare":"Palm lines unclear. Hold steady, face the light","warn")}
+ draw(h,"#6dffb0",R);cam.classList.add("lock");mode=="en"?enroll(d,pc,H,capturePalm(h)):ident(d,pc,H)}
+ function enrollGuide(h,H){enr=enr||{phase:"closed",closedFrames:0,buf:[],w:0,pd:null};const xs=h.map(p=>p.x),ys=h.map(p=>p.y),cx=(Math.min(...xs)+Math.max(...xs))/2,cy=(Math.min(...ys)+Math.max(...ys))/2,centered=Math.abs(cx-.5)<.2&&Math.abs(cy-.5)<.2;enr.closedFrames=centered?enr.closedFrames+1:0;hud(H,`CLOSED PALM ${Math.min(enr.closedFrames,6)}/6`);if(enr.closedFrames>=6){enr.phase="open";say("Open your palm");hint("Now open your palm and show the lines clearly","ok")}else hint(centered?"Put your closed palm at the center":"Move your closed palm to the center")}
+ function enroll(d,pc,H,snapshot){enr=enr||{phase:"open",buf:[],w:0,pd:null};if(enr.phase!="open")return;if(enr.w<3){if(enr.pd&&dist(enr.pd,d)[0]>3)enr.w=0;else enr.w++;enr.pd=d;hud(H,`SETTLE ${enr.w}/3`);return hint("Hold your open palm steady…")}const b=enr.buf;if(b.length&&dist(b[b.length-1].d,d)[0]>3)enr.buf=[];enr.buf.push({d,s:pc.s,u8:pc.u8});const n=enr.buf.length;hud(H,`LOCK ${n}/3`);hint(`Capturing ${"▮".repeat(n)}${"▯".repeat(3-n)} hold steady`);
+ if(n>=3){const f=enr.buf;enr=null;busy=true;if(psim(f[0].u8,f[2].u8)<.62){verdict("HOLD STEADIER","y","PALM LINES NOT STABLE");say("Please hold your hand steady");return setTimeout(()=>busy=false,1900)}
+  const gm=meanVec(f.map(x=>x.d)),R=matchAll([{d:gm,c:f[1].u8}]).filter(r=>r.ps>=palmStrictness()&&r.gd<=lim()*1.3);if(R.length){verdict("ALREADY ENROLLED","y",R[0].p.name);say("This palm is already registered as "+R[0].p.name);return setTimeout(()=>busy=false,1900)}
+  verdict("PALM CAPTURED","g","LINES + SHAPE LOCKED");say("Palm captured. Please enter a name");enr={samples:[...f.map(x=>x.d),gm],pc:f.map(x=>x.s),snapshot};setTimeout(()=>{$("#sheet").classList.remove("hide");$("#nm").value="";$("#nm").focus()},900)}}
+function ident(d,pc,H){if(!palms.length){hud(H,"DB EMPTY");return hint("Database empty. Register a palm first","warn")}
+ ib.push({d,c:pc.u8});if(ib.length<8){hud(H,`SCANNING ${ib.length}/8`);return hint("Scanning palm lines… hold steady")}
+ const fr=ib;ib=[];const R=matchAll(fr);if(!R.length){hud(H,"RE-REGISTER");return hint("Palms need re-registering (Version 8)","warn")}
+ const r=decide(R);hud(H,`LINES ${(r.b.ps*100).toFixed(0)}%\nGEO ${r.b.gd.toFixed(2)}`);if(r.ok)return mark(r.b.p);streak++;hint(r.b.ps>=palmStrictness()?"Ambiguous. Rescan, palm flat":"No match found","warn");
+ if(streak>=2){busy=true;streak=0;verdict("ACCESS DENIED","r","UNREGISTERED PALM");say("Access denied. Palm not recognised");setTimeout(()=>{busy=false;hint("Show your hand to the camera")},2000)}}
+const toMin=s=>{const[a,b]=s.split(":");return+a*60+ +b};
+const fmt12=s=>{const[h,m]=s.split(":").map(Number);return((h+11)%12+1)+":"+pad(m)+" "+(h<12?"AM":"PM")};
+const span=n=>n>=60?Math.floor(n/60)+"h"+(n%60?" "+n%60+"m":""):n+"m";
+function mark(p){busy=true;streak=0;const now=new Date(),t=day(now),ex=logs.find(l=>l.pid==p.id&&l.date==t),nm=now.getHours()*60+now.getMinutes();let g=0;const a=act=="auto"?(ex?"out":"in"):act;
+ if(a=="in"){if(ex){verdict("ALREADY TIMED IN","y",p.name+" · IN "+tm(ex.ts));say("You have already timed in, "+p.name)}else{const late=Math.max(0,nm-toMin(cfg.sIn)),isLate=late>cfg.grace;logs.push({id:uid(),pid:p.id,name:p.name,ts:now.toISOString(),date:t,out:null,late:isLate?late:0});persist("a");verdict(isLate?"LATE TIME-IN":"TIME-IN RECORDED",isLate?"y":"g",p.name+" · "+tm(now)+(isLate?" · LATE "+span(late):" · ON TIME"));say(isLate?"You're late, "+p.name:(now.getHours()<12?"Good morning, ":"Good evening, ")+p.name);g=1}}
+ else if(!ex){verdict("NO TIME-IN TODAY","r",p.name+" must time in first");say(p.name+", please time in first")}
+ else if(ex.out){verdict("ALREADY TIMED OUT","y",p.name+" · OUT "+tm(ex.out));say("You have already timed out, "+p.name)}
+ else{const early=Math.max(0,toMin(cfg.sOut)-nm);if(early>0&&cfg.early=="block"){verdict("TOO EARLY TO LEAVE","y",p.name+" · time-out opens "+fmt12(cfg.sOut));say("Too early to leave, "+p.name)}else{ex.out=now.toISOString();ex.early=early;persist("a");verdict(early?"EARLY TIME-OUT":"TIME-OUT RECORDED",early?"y":"g",p.name+" · "+tm(now)+(early?" · EARLY "+span(early):"")+" · "+dur(ex));say("Goodbye "+p.name);g=1}}
+ if(g){navigator.vibrate&&navigator.vibrate(120);cfg.voice||beep()}hint("Identity confirmed: "+p.name,"ok");render();setTimeout(()=>{busy=false;hint("Show your hand to the camera")},2300)}
+const setAct=a=>{act=a;busy=false;streak=0;[["Auto","auto"],["In","in"],["Out","out"]].forEach(([x,v])=>$("#a"+x).classList.toggle("on",v==a));$("#cam").classList.toggle("outm",a=="out");hint(a=="auto"?"Auto · time-in or time-out is detected":"Time "+a+" · show your palm")};
+$("#aAuto").onclick=()=>setAct("auto");$("#aIn").onclick=()=>setAct("in");$("#aOut").onclick=()=>setAct("out");
+function beep(){try{const a=new AudioContext(),o=a.createOscillator(),g=a.createGain();o.frequency.value=880;g.gain.value=.15;o.connect(g);g.connect(a.destination);o.start();o.stop(a.currentTime+.14)}catch{}}
+ function setMode(m){mode=m;$("#actSeg").classList.toggle("hide",m=="en");enr=m=="en"?{phase:"closed",closedFrames:0,buf:[],w:0,pd:null}:null;busy=false;$("#mId").classList.toggle("on",m=="id");$("#mEn").classList.toggle("on",m=="en");$("#scanNote").textContent=m=="en"?"First show your closed palm to the camera, then open it so the lines are clear. Hold steady and enter the name when the scan is confirmed.":"One scan is enough. Show your palm inside the frame with the lines visible.";hint(m=="en"?"Show your closed palm to the camera":"Show your palm to the camera")}
+$("#mId").onclick=()=>setMode("id");$("#mEn").onclick=()=>setMode("en");
+$("#nm").onkeydown=e=>{if(e.key=="Enter")$("#nmOK").click()};$("#nmX").onclick=()=>{$("#sheet").classList.add("hide");enr=null;busy=false;hint("Show your palm, lines visible")};
+$("#nmOK").onclick=()=>{if(!enr||!enr.samples)return;const n=$("#nm").value.replace(/\s+/g," ").trim();if(!n)return toast("Enter a name");if(palms.some(p=>p.name.toLowerCase()==n.toLowerCase()))return toast("That name already exists");
+ const snapshot=enr.snapshot||null;palms.push({id:uid(),name:n,created:new Date().toISOString(),v:4,pc:enr.pc,s:enr.samples.map(rd),snapshot});enr=null;$("#sheet").classList.add("hide");persist("p");say("Palm registered. Welcome, "+n);toast("Palm registered and snapshot saved");setMode("id");render();showPalmReveal(n,snapshot)};
+$("#facing").onchange=()=>{cfg.facing=$("#facing").value;S("cfg4",cfg);startCam()};$("#restart").onclick=startCam;
+
+/* ---------- render helpers ---------- */
+const ic=n=>`<svg class="i"><use href="#i-${n}"/></svg>`;
+const dur=l=>{const m=Math.max(0,Math.round((new Date(l.out)-new Date(l.ts))/60000));return m>=60?Math.floor(m/60)+"h "+m%60+"m":m+"m"};
+const wh=l=>`<div class="when">IN ${tm(l.ts)}<br>${l.out?"OUT "+tm(l.out):'<i class="no">NO OUT</i>'}</div>`;
+const ini=n=>n.trim().split(/\s+/).map(w=>w[0]).slice(0,2).join("").toUpperCase();
+const hue=n=>{let h=0;for(const c of n)h=(h*31+c.charCodeAt(0))%360;return h};
+const av=n=>`<div class="av" style="background:linear-gradient(135deg,hsl(${hue(n)} 85% 62%),hsl(${(hue(n)+55)%360} 85% 50%))">${esc(ini(n))}</div>`;
+const row=(n,sub,r="")=>`<div class="item">${av(n)}<div class="t"><b>${esc(n)}</b><div class="sub">${sub}</div></div>${r}</div>`;
+const inTag=l=>l.late>0?`<span class="tag w">Late ${span(l.late)}</span>`:l.late===0?'<span class="tag g">On time</span>':"";
+const outTag=l=>!l.out?'<span class="tag o">No time-out</span>':l.early>0?`<span class="tag w">Early ${span(l.early)}</span>`:"";
+const empty=(i,t)=>`<div class="empty">${ic(i)}${t}</div>`;
+function stats(d){const dl=logs.filter(l=>l.date==d),ids=new Set(dl.map(l=>l.pid));return{pres:dl.length,late:dl.filter(l=>l.late>0).length,out:dl.filter(l=>l.out).length,abs:palms.filter(p=>!ids.has(p.id)).length}}
+
+function renderChk(){const t=day(new Date()),sel=$("#rDate"),cur=sel.value||t,ds=[...new Set([t,...logs.map(l=>l.date)])].sort().reverse();
+ sel.innerHTML=ds.map(x=>`<option value="${x}">${x==t?"Today · ":""}${fd(x+"T12:00")}</option>`).join("");sel.value=ds.includes(cur)?cur:t;
+ const d=sel.value,q=$("#rQ").value.toLowerCase(),dl=logs.filter(l=>l.date==d),st=stats(d);
+ $("#rP").textContent="Present "+st.pres;$("#rL").textContent="Late "+st.late;$("#rO").textContent="No out "+(st.pres-st.out);$("#rA").textContent="Absent "+st.abs;
+ for(const[id,m]of[["rP","p"],["rL","l"],["rO","o"],["rA","a"]])$("#"+id).classList.toggle("on",rMode==m);
+ let h;
+ if(rMode=="a"){const ids=new Set(dl.map(l=>l.pid));h=palms.filter(p=>!ids.has(p.id)&&p.name.toLowerCase().includes(q)).sort((a,b)=>a.name.localeCompare(b.name,undefined,{sensitivity:"base"})).map(p=>row(p.name,'<span class="tag r">Absent</span>')).join("")}
+ else h=dl.filter(l=>(rMode=="o"?!l.out:rMode=="l"?l.late>0:true)&&l.name.toLowerCase().includes(q)).sort((a,b)=>a.name.localeCompare(b.name,undefined,{sensitivity:"base"})||a.ts.localeCompare(b.ts)).map(l=>row(l.name,inTag(l)+outTag(l)+(l.out?`<span>${dur(l)}</span>`:""),`${wh(l)}${l.out?`<button class="ib" data-unout="${esc(l.id)}" aria-label="Remove time-out">${ic("out")}</button>`:""}<button class="ib dng" data-del="${esc(l.id)}" aria-label="Delete record">${ic("trash")}</button>`)).join("");
+ $("#rList").innerHTML=h||empty("list",rMode=="a"?"Everyone is present.":rMode=="o"?"Everyone has timed out.":rMode=="l"?"No late arrivals.":"No check-ins for this date.")}
+
+ function renderPal(){const q=$("#pQ").value.toLowerCase();
+ $("#pList").innerHTML=palms.filter(p=>p.name.toLowerCase().includes(q)).sort((a,b)=>a.name.localeCompare(b.name,undefined,{sensitivity:"base"})).map(p=>row(p.name,`<span class="tag ${p.v==4?"g":"o"}">${p.v==4?"Registered":"Re-register"}</span><span>${new Date(p.created).toLocaleDateString()}</span>`,`<button class="ib" data-view="${esc(p.id)}" aria-label="View palm snapshot" title="View palm snapshot"${p.snapshot?"":" disabled"}>${ic("palm")}</button><button class="ib" data-ren="${esc(p.id)}" aria-label="Rename">${ic("edit")}</button><button class="ib dng" data-rm="${esc(p.id)}" aria-label="Delete">${ic("trash")}</button>`)).join("")||empty("users",palms.length?"No match.":"No palms registered yet.")}
+
+function renderSet(){const r=ready();
+ for(const id of["tIn","hSIn"])$("#"+id).textContent=fmt12(cfg.sIn);for(const id of["tOut","hSOut"])$("#"+id).textContent=fmt12(cfg.sOut);
+ $$("#grChips button").forEach(b=>b.classList.toggle("on",+b.dataset.grace==cfg.grace));$$("#erChips button").forEach(b=>b.classList.toggle("on",b.dataset.early==cfg.early));
+ $$("#vChips button").forEach(b=>b.classList.toggle("on",(b.dataset.voice=="1")==!!cfg.voice));vInfo();$("#vBtn").innerHTML=ic(cfg.voice?"vol":"mute");$("#vBtn").classList.toggle("off",!cfg.voice);$("#vBtn").setAttribute("aria-label","Voice announcements "+(cfg.voice?"on":"off"));
+ $("#ptReg").value=cfg.ptReg;$("#ptRegV").textContent=cfg.ptReg.toFixed(3);$("#ptChk").value=cfg.ptChk;$("#ptChkV").textContent=cfg.ptChk.toFixed(3);$("#thr").value=cfg.thr;$("#thV").textContent=cfg.thr.toFixed(3);
+ const s=$("#gStat");s.className="tag "+(r?"g":"o");s.textContent=r?"Connected":"Not connected";$("#gOff").classList.toggle("hide",!r);
+ $("#gInfo").textContent=r?`Syncing to ${cfg.owner}/${cfg.repo} · ${cfg.branch}. Changes upload automatically.`:"Connect a GitHub repository to back up palms and attendance automatically."}
+
+function render(){const t=day(new Date()),today=logs.filter(l=>l.date==t).sort((a,b)=>b.ts.localeCompare(a.ts)),st=stats(t),now=new Date(),hr=now.getHours();
+ $("#hDate").textContent=now.toLocaleDateString([],{weekday:"long",month:"long",day:"numeric"}).toUpperCase();$("#hGreet").textContent=hr<12?"Good morning":hr<18?"Good afternoon":"Good evening";
+ $("#hPres").textContent=st.pres;$("#hOf").textContent="of "+palms.length+" present";$("#hRing").style.strokeDashoffset=(326.7*(1-(palms.length?Math.min(1,st.pres/palms.length):0))).toFixed(1);
+ $("#hLate").textContent=st.late;$("#hOut").textContent=st.out;$("#hAbs").textContent=st.abs;
+ $("#hLast").textContent=today[0]?today[0].name.split(" ")[0]+" · "+(today[0].out?"OUT "+tm(today[0].out):"IN "+tm(today[0].ts)).replace(/:\d\d(?=\s|$)/,""):"—";
+ $("#rcP").textContent=st.pres;$("#rcL").textContent=st.late;$("#rcA").textContent=st.abs;$("#oChkN").textContent=today.length;$("#oPalN").textContent=palms.length;
+ renderSet();renderChk();renderPal();bar()}
+
+/* ---------- modals & dialogs ---------- */
+const openM=id=>{if(id=="mdChk"){$("#rDate").value="";rMode="p";$("#rQ").value=""}if(id=="mdPalms")$("#pQ").value="";$("#"+id).classList.remove("hide");render()};
+const closeM=id=>$("#"+id).classList.add("hide");
+function dialog(o){return new Promise(res=>{dIn=!!o.input;const i=$("#dI");$("#dT").textContent=o.title||"";$("#dM").textContent=o.msg||"";$("#dM").classList.toggle("hide",!o.msg);i.classList.toggle("hide",!dIn);i.value=o.value||"";i.placeholder=o.ph||"";
+ $("#dY").textContent=o.ok||"OK";$("#dY").className="btn"+(o.danger?" dg":"");$("#dN").textContent=o.cancel||"Cancel";$("#dlg").classList.remove("hide");if(dIn)setTimeout(()=>{i.focus();i.select()},60);dRes=v=>{$("#dlg").classList.add("hide");dRes=null;res(v)}})}
+$("#dY").onclick=()=>dRes&&dRes(dIn?$("#dI").value:true);$("#dN").onclick=()=>dRes&&dRes(dIn?null:false);$("#dI").onkeydown=e=>{if(e.key=="Enter")$("#dY").click()};
+
+/* ---------- tap-only time picker ---------- */
+const to24=({h,m,ap})=>pad(h%12+(ap=="PM"?12:0))+":"+pad(m);
+const Q={sIn:["07:00","07:30","08:00","08:30","09:00"],sOut:["16:00","16:30","17:00","17:30","18:00"]};
+function renderTime(){const{k,h,m,ap}=tp;$("#tpT").textContent=k=="sIn"?"Required time-in":"Required time-out";$("#tpD").innerHTML=`${h}:${pad(m)} <small>${ap}</small>`;
+ $("#tpQ").innerHTML=Q[k].map(s=>`<button data-tq="${s}" class="${s==to24(tp)?"on":""}">${fmt12(s)}</button>`).join("");
+ $("#tpH").innerHTML=[...Array(12)].map((_,i)=>`<button data-th="${i+1}" class="${i+1==h?"on":""}">${i+1}</button>`).join("");
+ $("#tpM").innerHTML=[...Array(12)].map((_,i)=>`<button data-tm="${i*5}" class="${i*5==m?"on":""}">${pad(i*5)}</button>`).join("");
+ $("#tpA").innerHTML=["AM","PM"].map(x=>`<button data-tap="${x}" class="${x==ap?"on":""}">${x}</button>`).join("")}
+$("#tpOK").onclick=()=>{if(!tp)return;const v=to24(tp),o=tp.k=="sIn"?cfg.sOut:cfg.sIn;if(tp.k=="sIn"?toMin(v)>=toMin(o):toMin(v)<=toMin(o))return toast(tp.k=="sIn"?"Time-in must be earlier than time-out":"Time-out must be later than time-in");cfg[tp.k]=v;S("cfg4",cfg);tp=null;closeM("mdTime");render();toast("Schedule updated")};
+$("#tpX").onclick=$("#tpC").onclick=()=>{tp=null;closeM("mdTime")};
+
+/* ---------- GitHub connect form (auto-fill) ---------- */
+const draft=()=>L("ghd")||{};
+function gfill(){const d=draft();$("#gO").value=cfg.owner||d.owner||"";$("#gR").value=cfg.repo||d.repo||"";$("#gB").value=cfg.branch||d.branch||"main";$("#gT").value=cfg.token||d.token||""}
+function saveDraft(){S("ghd",{owner:$("#gO").value.trim(),repo:$("#gR").value.trim(),branch:$("#gB").value.trim(),token:$("#gT").value.trim()})}
+["#gO","#gR","#gB","#gT"].forEach(s=>$(s).addEventListener("input",saveDraft));
+$("#gSave").onclick=async()=>{const o=$("#gO").value.trim(),r=$("#gR").value.trim(),b=$("#gB").value.trim()||"main",t=$("#gT").value.trim();if(!o||!r||!t)return toast("Fill in owner, repository and token");
+ Object.assign(cfg,{owner:o,repo:r,branch:b,token:t});S("cfg4",cfg);saveDraft();$("#gSave").disabled=true;const ok=await load();$("#gSave").disabled=false;if(ok)toast("Connected to "+o+"/"+r);render()};
+$("#gSync").onclick=()=>{if(!ready())return toast("Add GitHub details first");pending.p=pending.a=1;S("pending",pending);flush();toast("Syncing…")};
+$("#gOff").onclick=async()=>{if(!await dialog({title:"Disconnect GitHub?",msg:"Owner, repository and branch stay filled in. Only the access token is removed from this device.",ok:"Disconnect",danger:1}))return;
+ if(Object.keys(pending).length)setDirty(true);cfg.token="";S("cfg4",cfg);const d=draft();d.token="";S("ghd",d);$("#gT").value="";pill("","Local only");render()};
+
+/* ---------- actions ---------- */
+ function backup(){const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify({app:"PalmPass",exported:new Date().toISOString(),settings:{sIn:cfg.sIn,sOut:cfg.sOut,grace:cfg.grace,early:cfg.early,thr:cfg.thr,ptReg:cfg.ptReg,ptChk:cfg.ptChk},palms,logs})],{type:"application/json"}));a.download="palmpass-backup-"+day(new Date())+".json";a.click();if(!ready())setDirty(false)}
+document.addEventListener("click",async e=>{const bg=e.target;
+ if(bg.classList&&bg.classList.contains("modal")){bg.id=="dlg"?$("#dN").click():bg.id=="mdTime"?$("#tpX").click():closeM(bg.id);return}
+ const b=e.target.closest("button");if(!b)return;const D=b.dataset;
+ if(D.go)go(D.go);
+ if(D.open)openM(D.open);
+ if(b.hasAttribute("data-close"))closeM(b.closest(".modal").id);
+ if(b.hasAttribute("data-enroll")){$$(".modal").forEach(m=>m.id!="dlg"&&m.classList.add("hide"));go("scan");setMode("en")}
+ if(D.act=="sync"){flush();toast("Syncing…")}
+ if(D.act=="backup")backup();
+ if(D.act=="conn"){go("set");setTimeout(()=>$("#gcard").scrollIntoView({behavior:"smooth"}),120)}
+ if(D.view){const p=palms.find(x=>x.id==D.view);if(p){$("#palmShotTitle").textContent=p.name+" · Palm snapshot";$("#palmShot").classList.toggle("hide",!p.snapshot);$("#palmShotEmpty").classList.toggle("hide",!!p.snapshot);if(p.snapshot){$("#palmShot").src=p.snapshot;$("#palmShot").alt="Saved palm snapshot for "+p.name}$("#mdPalm").classList.remove("hide")}}
+ if(D.time){const[h,m]=cfg[D.time].split(":").map(Number);tp={k:D.time,h:(h+11)%12+1,m,ap:h<12?"AM":"PM"};renderTime();$("#mdTime").classList.remove("hide")}
+ if(tp){if(D.th)tp.h=+D.th;if(D.tm!==undefined)tp.m=+D.tm;if(D.tap)tp.ap=D.tap;if(D.tq){const[h,m]=D.tq.split(":").map(Number);Object.assign(tp,{h:(h+11)%12+1,m,ap:h<12?"AM":"PM"})}if(D.th||D.tm!==undefined||D.tap||D.tq)renderTime()}
+ if(D.voice!==undefined){cfg.voice=D.voice=="1";S("cfg4",cfg);renderSet();cfg.voice?say("Voice announcements on"):stopSay()}
+ if(D.grace!==undefined){cfg.grace=+D.grace;S("cfg4",cfg);renderSet()}
+ if(D.early){cfg.early=D.early;cfg.earlyPolicySet=true;S("cfg4",cfg);renderSet()}
+ if(D.del){const l=logs.find(x=>x.id==D.del);if(l&&await dialog({title:"Delete record?",msg:l.name+"'s time-in and time-out for this day will be removed.",ok:"Delete",danger:1})){const B=before();logs=logs.filter(x=>x!=l);persist("a");render();undoable("Record deleted",B)}}
+ if(D.unout){const l=logs.find(x=>x.id==D.unout);if(l&&await dialog({title:"Remove time-out?",msg:"Only the time-out of "+l.name+" will be removed.",ok:"Remove"})){const B=before();l.out=null;l.early=undefined;persist("a");render();undoable("Time-out removed",B)}}
+ if(D.rm){const p=palms.find(x=>x.id==D.rm);if(!p)return;if(await dialog({title:"Delete palm?",msg:p.name+" will need to register again.",ok:"Delete",danger:1})){const B=before();palms=palms.filter(x=>x!=p);persist("p");const n=logs.filter(l=>l.pid==p.id).length;if(n&&await dialog({title:"Delete records too?",msg:n+" attendance record(s) belong to "+p.name+".",ok:"Delete records",cancel:"Keep records",danger:1})){logs=logs.filter(l=>l.pid!=p.id);persist("a")}render();undoable("Palm deleted",B)}}
+ if(D.ren){const p=palms.find(x=>x.id==D.ren);if(!p)return;const n=await dialog({title:"Rename palm",input:1,value:p.name,ok:"Save"});if(n&&n.trim()){const nn=n.replace(/\s+/g," ").trim();if(palms.some(x=>x!=p&&x.name.toLowerCase()==nn.toLowerCase()))return toast("That name already exists");p.name=nn;logs.forEach(l=>{if(l.pid==p.id)l.name=nn});persist("p");persist("a");render()}}});
+document.addEventListener("keydown",e=>{if(e.key!="Escape")return;const m=$$(".modal:not(.hide)").pop();if(m)m.id=="dlg"?$("#dN").click():m.id=="mdTime"?$("#tpX").click():closeM(m.id)});
+
+$("#rDate").onchange=$("#rQ").oninput=renderChk;$("#pQ").oninput=renderPal;
+$$("#mdChk .seg button").forEach(b=>b.onclick=()=>{rMode={rP:"p",rL:"l",rO:"o",rA:"a"}[b.id];renderChk()});
+$("#csv").onclick=()=>{const d=$("#rDate").value,rows=[["Date","Name","Time in","Time-in status","Time out","Time-out status","Duration"],...logs.filter(l=>l.date==d).sort((a,b)=>a.ts.localeCompare(b.ts)).map(l=>[l.date,l.name,tm(l.ts),l.late>0?"Late "+span(l.late):l.late===0?"On time":"",l.out?tm(l.out):"",l.out?(l.early>0?"Early "+span(l.early):l.early===0?"On time":""):"No time-out",l.out?dur(l):""])];
+ const c=rows.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(",")).join("\n"),a=document.createElement("a");a.href=URL.createObjectURL(new Blob(["\ufeff"+c],{type:"text/csv"}));a.download=`attendance-${d}.csv`;a.click()};
+$("#clr").onclick=async()=>{const d=$("#rDate").value,n=logs.filter(l=>l.date==d).length;if(!n)return toast("Nothing to clear for this date");if(await dialog({title:"Clear this day?",msg:"All "+n+" record(s) for "+fd(d+"T12:00")+" will be removed.",ok:"Clear day",danger:1})){const B=before();logs=logs.filter(l=>l.date!=d);persist("a");render();undoable(n+" record(s) cleared",B)}};
+$("#bkD").onclick=backup;$("#bkR").onclick=()=>$("#bkF").click();
+$("#bkF").onchange=async e=>{const f=e.target.files[0];e.target.value="";if(!f)return;let j;
+ try{j=JSON.parse(await f.text());if(!Array.isArray(j.palms)||!Array.isArray(j.logs)||j.palms.some(p=>!p.id||!p.name||!Array.isArray(p.s))||j.logs.some(l=>!l.id||!l.pid||!l.ts))throw 0}catch{return toast("That file is not a valid PalmPass backup")}
+ if(!await dialog({title:"Restore backup?",msg:"Replace current data with "+j.palms.length+" palms and "+j.logs.length+" records.",ok:"Restore"}))return;
+ const B=before(),s=j.settings;palms=j.palms;logs=j.logs;
+ if(s&&/^\d\d:\d\d$/.test(s.sIn)&&/^\d\d:\d\d$/.test(s.sOut)&&toMin(s.sIn)<toMin(s.sOut)){cfg.sIn=s.sIn;cfg.sOut=s.sOut;if([0,5,10,15,30].includes(s.grace))cfg.grace=s.grace;if(s.early=="flag"||s.early=="block")cfg.early=s.early;if(Number.isFinite(s.thr))cfg.thr=s.thr;if(Number.isFinite(s.ptReg))cfg.ptReg=s.ptReg;if(Number.isFinite(s.ptChk)){cfg.ptChk=s.ptChk;cfg.pt=s.ptChk}S("cfg4",cfg)}
+ persist("p");persist("a");render();undoable("Backup restored",B)};
+ $("#ptReg").oninput=e=>{cfg.ptReg=+e.target.value;S("cfg4",cfg);$("#ptRegV").textContent=cfg.ptReg.toFixed(3)};$("#ptChk").oninput=e=>{cfg.ptChk=+e.target.value;cfg.pt=cfg.ptChk;S("cfg4",cfg);$("#ptChkV").textContent=cfg.ptChk.toFixed(3)};$("#thr").oninput=e=>{cfg.thr=+e.target.value;S("cfg4",cfg);$("#thV").textContent=cfg.thr.toFixed(3)};
+
+/* ---------- navigation & lifecycle ---------- */
+function go(t){tab=t;$$(".tab").forEach(x=>x.classList.toggle("on",x.id==t));$$("nav button").forEach(x=>x.classList.toggle("on",x.dataset.go==t));$("main").scrollTop=0;if(t=="scan")startCam();else{stopCam();if(mode=="en")setMode("id");if(act!="auto")setAct("auto")}render()}
+addEventListener("online",()=>Object.keys(pending).length&&flush());
+setInterval(()=>{if(ready()&&Object.keys(pending).length&&!document.hidden)flush()},45000);
+/* warn before leaving with unsynced work, and try to sync on the way out */
+addEventListener("beforeunload",e=>{if(!unsynced())return;if(ready())flush();e.preventDefault();e.returnValue=""});
+addEventListener("pagehide",()=>{if(ready()&&Object.keys(pending).length)beacon()});
+document.addEventListener("visibilitychange",()=>{if(document.hidden){stopCam();if(ready()&&Object.keys(pending).length)flush()}else if(tab=="scan")startCam()});
+/* ---------- British voice announcements ---------- */
+let gbVoice=null,voiceBusy=false;
+const isNativeAndroid=()=>!!(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform());
+const nativeTTS=()=>isNativeAndroid()?(window.PalmPassTTS||null):null;
+function pickVoice(){if(!("speechSynthesis"in window))return;const vs=speechSynthesis.getVoices();if(!vs.length)return;const gb=vs.filter(v=>/en[-_]GB/i.test(v.lang));
+ const pref=[/google uk english female/i,/serena/i,/kate/i,/hazel/i,/google uk english male/i,/daniel/i,/oliver/i,/arthur/i];
+ gbVoice=pref.map(r=>gb.find(v=>r.test(v.name))).find(Boolean)||gb[0]||null;vInfo()}
+function vInfo(message){const e=$("#vInfo");if(!e)return;if(message){e.textContent=message;return}e.textContent=!cfg.voice?"Voice announcements are off.":nativeTTS()?"Android speech engine ready. Tap Test voice to verify sound.":isNativeAndroid()?"Android voice module is still starting. Try Test voice in a moment.":!("speechSynthesis"in window)?"This device has no available speech engine. Announcements remain visible on screen.":gbVoice?"Voice: "+gbVoice.name+" (British English)":"No British voice found; the device's default voice will be used."}
+if("speechSynthesis"in window){pickVoice();speechSynthesis.addEventListener&&speechSynthesis.addEventListener("voiceschanged",pickVoice)}
+async function stopSay(){try{if("speechSynthesis"in window)speechSynthesis.cancel()}catch{}try{const n=nativeTTS();if(n&&n.stop)await n.stop()}catch{}}
+/* Convert ALL-CAPS names into normally pronounced names. */
+const speakable=t=>String(t).replace(/[A-Z][A-Z'’-]+/g,w=>w[0]+w.slice(1).toLowerCase());
+function browserSpeak(text){return new Promise((resolve,reject)=>{if(!( "speechSynthesis" in window)||typeof SpeechSynthesisUtterance==="undefined")return reject(new Error("Android/browser speech engine is unavailable."));
+ try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.lang="en-GB";if(gbVoice)u.voice=gbVoice;u.rate=.95;u.pitch=1;u.volume=1;u.onend=()=>resolve();u.onerror=e=>reject(new Error("Browser speech failed: "+(e.error||"unknown error")));speechSynthesis.speak(u);setTimeout(()=>{if(speechSynthesis.speaking||speechSynthesis.pending)resolve()},1200)}catch(e){reject(e)}})}
+async function say(text,force=false){if(!cfg.voice&&!force)return false;text=speakable(text);const now=Date.now();if(!force&&say.l&&say.l.k===text&&now-say.l.t<4000)return false;say.l={k:text,t:now};
+ if(voiceBusy)await stopSay();voiceBusy=true;
+ try{const n=nativeTTS();if(n&&typeof n.speak==="function"){
+   try{await n.speak({text,lang:"en-GB",rate:.95,pitch:1.0,volume:1.0,category:"ambient"});vInfo("Speaking with Android text-to-speech (English UK).");return true}
+   catch(nativeError){console.warn("PalmPass native TTS failed; trying browser speech",nativeError);}
+  }
+  await browserSpeak(text);vInfo("Speech played successfully.");return true;
+ }catch(e){console.error("PalmPass voice announcement failed",e);vInfo("Voice unavailable: "+(e&&e.message?e.message:"speech could not start")+". Check Android Settings → Text-to-speech and install an English voice.");return false}
+ finally{voiceBusy=false}}
+$("#vBtn").onclick=async()=>{cfg.voice=!cfg.voice;S("cfg4",cfg);renderSet();if(cfg.voice){say.l=null;await say("Voice announcements on",true)}else await stopSay();toast("Voice announcements "+(cfg.voice?"on":"off"))};
+$("#vTest").onclick=async()=>{if(!cfg.voice){cfg.voice=true;S("cfg4",cfg);renderSet()}say.l=null;const greeting=(new Date().getHours()<12?"Good morning":"Good evening")+", Alex. This is a PalmPass voice test.";const ok=await say(greeting,true);if(ok)toast("Voice test completed");else toast("Voice test failed — see the voice status message")};
+/* ---------- Android back button (APK): close layers, then warn about unsynced work ---------- */
+(function(){const A=window.Capacitor&&Capacitor.Plugins&&Capacitor.Plugins.App;if(!A||!A.addListener)return;
+ A.addListener("backButton",async()=>{
+  if(!$("#dlg").classList.contains("hide")){$("#dN").click();return}
+  if(!$("#sheet").classList.contains("hide")){$("#nmX").click();return}
+  const m=$$(".modal:not(.hide)").pop();if(m){m.id=="mdTime"?$("#tpX").click():closeM(m.id);return}
+  if(tab!="home"){go("home");return}
+  if(unsynced()){const c=ready();if(!await dialog({title:"Unsynced changes",msg:c?"Sync to GitHub before leaving so nothing is lost.":"Your data is only on this device. Back it up or connect GitHub first.",ok:c?"Sync & exit":"Exit anyway",cancel:"Stay"}))return;if(c){toast("Syncing…");flush();await Promise.race([q,new Promise(r=>setTimeout(r,8000))])}}
+  A.exitApp()})})();
+
+gfill();$("#facing").value=cfg.facing||"user";render();load();
+</script></body></html>
