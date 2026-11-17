@@ -9,34 +9,6 @@
    "out": "2026-11-16T14:32:17.131Z",
    "late": 61,
    "early": 0
-  },
-  {
-   "id": "mwkhh39hmfr5b",
-   "pid": "mwkhgrt229kr0",
-   "name": "ezek",
-   "ts": "2026-11-17T09:21:59.237Z",
-   "date": "2026-11-17",
-   "out": null,
-   "late": 0
-  },
-  {
-   "id": "mwkk4x6xcn9yx",
-   "pid": "mwkk423rahqs6",
-   "name": "eeeezek",
-   "ts": "2026-11-17T10:36:30.345Z",
-   "date": "2026-11-17",
-   "out": null,
-   "late": 0
-  },
-  {
-   "id": "mwkk6jq6ycmfh",
-   "pid": "mwkfbv0wchs0e",
-   "name": "Ezekiel Carullo",
-   "ts": "2026-11-17T10:37:46.205Z",
-   "date": "2026-11-17",
-   "out": "2026-11-17T13:31:05.178Z",
-   "late": 0,
-   "early": 0
   }
  ]
 }
