@@ -9,24 +9,6 @@
    "out": "2026-11-16T14:32:17.131Z",
    "late": 61,
    "early": 0
-  },
-  {
-   "id": "mwlak5ujz35ch",
-   "pid": "mwkfbv0wchs0e",
-   "name": "Ezekiel Carullo",
-   "ts": "2026-11-17T22:56:11.417Z",
-   "date": "2026-11-18",
-   "out": null,
-   "late": 0
-  },
-  {
-   "id": "mwljdxji1yc8n",
-   "pid": "mwljdmzpodp8i",
-   "name": "Err",
-   "ts": "2026-11-18T03:03:17.261Z",
-   "date": "2026-11-18",
-   "out": null,
-   "late": 153
   }
  ]
 }
