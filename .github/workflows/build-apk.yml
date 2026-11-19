@@ -2,7 +2,7 @@ name: Build PalmPass APK
 
 # Put this file at:  .github/workflows/build-apk.yml
 # Repo layout:       index.html  +  assets/ folder (the 5 PNG icon files)
-# Runs when index.html / assets / this file change (data/*.json pushes from the app do NOT trigger it),
+# Builds Android APK and deploys the iOS-installable PWA when app files change (data/*.json pushes do NOT trigger it),
 # or manually from the Actions tab (Run workflow).
 on:
   push:
@@ -10,11 +10,15 @@ on:
     paths:
       - "index.html"
       - "assets/**"
+      - "manifest.webmanifest"
+      - "sw.js"
       - ".github/workflows/build-apk.yml"
   workflow_dispatch:
 
 permissions:
-  contents: write   # lets the job publish the APK as a Release you can download on your phone
+  contents: write   # publish the Android APK release
+  pages: write      # publish the iOS-installable PWA
+  id-token: write   # authenticate GitHub Pages deployment
 
 concurrency:
   group: build-apk
@@ -24,6 +28,9 @@ jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 45
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     env:
       CI: "true"
       BRAND_COLOR: "#160e3d"
@@ -73,6 +80,10 @@ jobs:
           test -s www/vendor/vision_bundle.js || { echo "::error::MediaPipe JavaScript bundle is missing"; exit 1; }
 
           cp index.html www/index.html
+          cp manifest.webmanifest www/manifest.webmanifest
+          cp sw.js www/sw.js
+          mkdir -p www/assets
+          cp assets/*.png www/assets/
 
           # Rewrite only the MediaPipe hand-model/runtime paths to local files.
           sed -i 's|https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/vision_bundle.mjs|./vendor/vision_bundle.js|g' www/index.html
@@ -202,3 +213,19 @@ jobs:
           tag_name: apk-${{ github.run_number }}
           name: PalmPass APK #${{ github.run_number }}
           files: PalmPass.apk
+
+      # ---------------------------------------------------------------
+      # 6. Publish the same app as an installable iPhone/iPad PWA.
+      #    GitHub Pages provides HTTPS, which iOS requires for camera access.
+      # ---------------------------------------------------------------
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload PalmPass web app
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: www
+
+      - name: Deploy PalmPass for iOS and web
+        id: deployment
+        uses: actions/deploy-pages@v4
