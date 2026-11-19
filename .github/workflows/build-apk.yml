@@ -28,9 +28,6 @@ jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 45
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     env:
       CI: "true"
       BRAND_COLOR: "#160e3d"
@@ -67,9 +64,11 @@ jobs:
 
           mkdir -p www/vendor/wasm
           npm init -y >/dev/null
-          npm install --no-audit --no-fund @mediapipe/tasks-vision@0.10.14
+          npm install --no-audit --no-fund @mediapipe/tasks-vision@0.10.14 esbuild
 
-          cp node_modules/@mediapipe/tasks-vision/vision_bundle.mjs www/vendor/vision_bundle.js
+          npx esbuild node_modules/@mediapipe/tasks-vision/vision_bundle.mjs \
+            --bundle --format=esm --platform=browser --target=es2020 \
+            --outfile=www/vendor/vision_bundle.js
           cp node_modules/@mediapipe/tasks-vision/wasm/* www/vendor/wasm/
 
           curl -fL --retry 4 --retry-delay 3 -o www/vendor/hand_landmarker.task \
@@ -80,10 +79,14 @@ jobs:
           test -s www/vendor/vision_bundle.js || { echo "::error::MediaPipe JavaScript bundle is missing"; exit 1; }
 
           cp index.html www/index.html
-          cp manifest.webmanifest www/manifest.webmanifest
-          cp sw.js www/sw.js
           mkdir -p www/assets
           cp assets/*.png www/assets/
+          # The native Android WebView does not rely on the PWA service worker.
+          # Keep a small manifest and harmless worker so shared HTML paths resolve.
+          cat > www/manifest.webmanifest <<'JSON'
+          {"name":"PalmPass","short_name":"PalmPass","start_url":"./","display":"standalone","background_color":"#05060e","theme_color":"#05060e"}
+          JSON
+          printf 'self.addEventListener("fetch", () => {});\n' > www/sw.js
 
           # Rewrite only the MediaPipe hand-model/runtime paths to local files.
           sed -i 's|https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/vision_bundle.mjs|./vendor/vision_bundle.js|g' www/index.html
@@ -214,18 +217,159 @@ jobs:
           name: PalmPass APK #${{ github.run_number }}
           files: PalmPass.apk
 
-      # ---------------------------------------------------------------
-      # 6. Publish the same app as an installable iPhone/iPad PWA.
-      #    GitHub Pages provides HTTPS, which iOS requires for camera access.
-      # ---------------------------------------------------------------
+  deploy-pages:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Build self-contained MediaPipe browser runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s index.html || { echo "::error::Root index.html is missing"; exit 1; }
+          mkdir -p www/vendor/wasm www/assets
+          npm init -y >/dev/null
+          npm install --no-audit --no-fund @mediapipe/tasks-vision@0.10.14 esbuild
+
+          npx esbuild node_modules/@mediapipe/tasks-vision/vision_bundle.mjs \
+            --bundle --format=esm --platform=browser --target=es2020 \
+            --outfile=www/vendor/vision_bundle.js
+          cp node_modules/@mediapipe/tasks-vision/wasm/* www/vendor/wasm/
+          curl -fL --retry 4 --retry-delay 3 -o www/vendor/hand_landmarker.task \
+            "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task"
+
+          test -s www/vendor/vision_bundle.js
+          test -s www/vendor/wasm/vision_wasm_internal.wasm
+          test "$(stat -c%s www/vendor/hand_landmarker.task)" -gt 1000000
+
+          cp index.html www/index.html
+          # Use only same-origin local files for MediaPipe. This also repairs older
+          # index.html copies that still contain the original CDN URLs.
+          python3 - <<'PYCODE'
+          from pathlib import Path
+          p = Path('www/index.html')
+          s = p.read_text(encoding='utf-8')
+          replacements = {
+            'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/vision_bundle.mjs': './vendor/vision_bundle.js',
+            'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm': './vendor/wasm',
+            'https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task': './vendor/hand_landmarker.task',
+            './vendor/vision_bundle.mjs': './vendor/vision_bundle.js',
+          }
+          for old, new in replacements.items():
+            s = s.replace(old, new)
+          p.write_text(s, encoding='utf-8')
+          assert './vendor/vision_bundle.js' in s, 'MediaPipe module path was not configured'
+          assert './vendor/wasm' in s, 'MediaPipe WASM path was not configured'
+          assert './vendor/hand_landmarker.task' in s, 'Hand model path was not configured'
+          assert 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision' not in s, 'External MediaPipe CDN reference remains'
+          assert 'https://storage.googleapis.com/mediapipe-models/hand_landmarker' not in s, 'External hand model reference remains'
+          PYCODE
+
+          # Copy existing icons when supplied. Also provide the root touch icon path
+          # referenced by the iOS HTML file.
+          if [ -d assets ]; then cp assets/*.png www/assets/ 2>/dev/null || true; fi
+          if [ -s www/assets/icon-only.png ]; then
+            cp www/assets/icon-only.png www/apple-touch-icon.png
+          elif [ -s www/assets/icon-foreground.png ]; then
+            cp www/assets/icon-foreground.png www/apple-touch-icon.png
+          else
+            echo "::error::No app icon found in assets/"
+            exit 1
+          fi
+
+          cat > www/manifest.webmanifest <<'JSON'
+          {
+            "id": "./",
+            "name": "PalmPass - Smart Palm Attendance",
+            "short_name": "PalmPass",
+            "start_url": "./",
+            "scope": "./",
+            "display": "standalone",
+            "orientation": "portrait",
+            "background_color": "#05060e",
+            "theme_color": "#05060e",
+            "icons": [
+              { "src": "./apple-touch-icon.png", "sizes": "192x192", "type": "image/png", "purpose": "any" }
+            ]
+          }
+          JSON
+
+          # A no-op module satisfies the optional native TTS import in the PWA.
+          # Native Android builds continue to create the real TTS bridge separately.
+          printf 'export {};\\n' > www/vendor/tts-bridge.js
+
+          # Generate a cache list from the actual build output, including every WASM file.
+          node <<'NODE'
+          const fs = require('fs');
+          const path = require('path');
+          const root = 'www';
+          const files = [];
+          function walk(dir) {
+            for (const entry of fs.readdirSync(dir, {withFileTypes:true})) {
+              const full = path.join(dir, entry.name);
+              if (entry.isDirectory()) walk(full);
+              else if (entry.name !== 'sw.js') files.push('./' + full.slice(root.length + 1).split(path.sep).join('/'));
+            }
+          }
+          walk(root);
+          const precache = ['./', ...files];
+          const sw = `const CACHE_NAME = 'palmpass-shell-v3';
+          const PRECACHE_URLS = ${JSON.stringify(precache, null, 2)};
+          self.addEventListener('install', event => event.waitUntil((async () => {
+            const cache = await caches.open(CACHE_NAME);
+            await cache.addAll(PRECACHE_URLS);
+            await self.skipWaiting();
+          })()));
+          self.addEventListener('activate', event => event.waitUntil((async () => {
+            for (const key of await caches.keys()) if (key !== CACHE_NAME) await caches.delete(key);
+            await self.clients.claim();
+          })()));
+          self.addEventListener('fetch', event => {
+            const req = event.request;
+            if (req.method !== 'GET' || new URL(req.url).origin !== self.location.origin) return;
+            if (req.mode === 'navigate') {
+              event.respondWith((async () => {
+                try { return await fetch(req); }
+                catch { return (await caches.match(new URL('./index.html', self.registration.scope).href)) || Response.error(); }
+              })());
+              return;
+            }
+            event.respondWith((async () => {
+              const cached = await caches.match(req);
+              if (cached) return cached;
+              const response = await fetch(req);
+              if (response && response.ok) {
+                const cache = await caches.open(CACHE_NAME);
+                cache.put(req, response.clone());
+              }
+              return response;
+            })());
+          });
+          `;
+          fs.writeFileSync(path.join(root, 'sw.js'), sw);
+          NODE
+
+          echo "PWA assets prepared:"
+          find www/vendor -maxdepth 2 -type f -printf '%p (%s bytes)\\n' | sort
+
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
 
-      - name: Upload PalmPass web app
+      - name: Upload PalmPass PWA
         uses: actions/upload-pages-artifact@v3
         with:
           path: www
 
-      - name: Deploy PalmPass for iOS and web
+      - name: Deploy PalmPass PWA
         id: deployment
         uses: actions/deploy-pages@v4
