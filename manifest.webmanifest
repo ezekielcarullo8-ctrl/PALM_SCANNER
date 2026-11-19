@@ -1,0 +1,24 @@
+{
+  "id": "./",
+  "name": "PalmPass \u00b7 Smart Palm Attendance",
+  "short_name": "PalmPass",
+  "description": "Palm attendance registration and check-ins.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": [
+    "standalone",
+    "minimal-ui"
+  ],
+  "orientation": "any",
+  "background_color": "#05060e",
+  "theme_color": "#05060e",
+  "icons": [
+    {
+      "src": "./assets/icon-only.png",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
